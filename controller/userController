@@ -1,0 +1,22 @@
+//page not found
+pagenotfound = async (req, res) => {
+    res.status(404).render('notfound', { title: 'Page Not Found' });
+}
+
+
+// Load homepage function
+loadHomePage = async(req, res) => {
+  try {
+    // Any logic for homepage rendering, like fetching data, can go here
+    res.render("home");
+    // res.render('index', { title: 'Welcome to Our eCommerce Site' });
+  } catch (error) {
+    console.error('Error loading homepage:', error);
+    res.status(500).send('Server error while loading homepage');
+  }
+};
+module.exports = {
+  loadHomePage,
+  pagenotfound,
+}
+
