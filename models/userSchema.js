@@ -29,6 +29,7 @@ const userSchema = new Schema({
         unique: false,
         sparse: true,
         default: null,
+        required:false,
         match: [/^\d{10}$/, 'Please enter a valid phone number'],
 
     },
@@ -101,8 +102,5 @@ userSchema.methods.comparePassword = async function(enteredPassword) {
 };
 
 // Export the model
-const User = mongoose.model('User', userSchema);
-module.exports = {
-    User,
-    
-}
+module.exports = mongoose.model('User', userSchema);
+

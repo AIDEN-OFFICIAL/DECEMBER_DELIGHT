@@ -1,22 +1,93 @@
-//page not found
-pagenotfound = async (req, res) => {
-    res.status(404).render('notfound', { title: 'Page Not Found' });
-}
+const User = require('../models/userSchema');
+const bcrypt = require('bcrypt');
 
+const pagenotfound = async (req, res) => {
+  res.status(404).render('notfound', { title: 'Page Not Found' });
+};
 
 // Load homepage function
-loadHomePage = async(req, res) => {
+const loadHomePage = async (req, res) => {
   try {
     // Any logic for homepage rendering, like fetching data, can go here
-    res.render("home");
+    res.render('home');
     // res.render('index', { title: 'Welcome to Our eCommerce Site' });
   } catch (error) {
     console.error('Error loading homepage:', error);
     res.status(500).send('Server error while loading homepage');
   }
 };
+
+const loadSignup = async (req, res) => {
+  try {
+    res.render('signup', { message: null });
+  } catch (err) {
+    console.log('error in signingup ', err);
+    res.status(500).send('Server Error');
+  }
+};
+
+const signup = async (req, res) => {
+  const { name, email, password, confirmPassword } = req.body;
+
+  // Validate input
+  if (!name || !email || !password || !confirmPassword) {
+    return res.render('signup', { message: 'All fields are required' });
+  }
+
+  if (password !== confirmPassword) {
+    return res.render('signup', { message: 'Passwords do not match' });
+  }
+
+  try {
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.render('signup', { message: 'Email is already registered' });
+    }
+
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create new user and save to DB
+    const newUser = new User({ name, email, password: hashedPassword });
+    await newUser.save();
+
+    // Redirect to signin page after successful signup
+    return res.redirect('/signin');
+  } catch (err) {
+    console.error('Error in user signup:', err);
+    res.status(500).send('Server Error');
+  }
+};
+
+// const loadSignin = async (req, res) => {
+//   try {
+//     res.render('signup', { message: null });
+//   }
+//   catch (err) {
+//     console.log('error in signingup ', err)
+//     res.status(500).send('Server Error')
+//   }
+// };
+
+// const signin = async (req, res) => {
+//   try {
+//     const { name, email, password } = req.body;
+
+//   }
+//   catch (err) {
+//     console.log('error in signingup ', err)
+//     res.status(500).send('Server Error')
+//   }
+
+// }
+
 module.exports = {
   loadHomePage,
+  loadSignup,
+  // loadSignin,
+  signup,
+  // signin,
   pagenotfound,
-}
-
+};
