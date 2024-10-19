@@ -4,15 +4,14 @@ const userController = require('../controller/userController');
 
 router.get('/', userController.loadHomePage);
 
-// router.get('/signin',userController.signin)
-router.get('/signin', (req, res) => {
-    res.render('signin', { message: null });
-});
+router.get('/signin',userController.loadSignin)
+// router.get('/signin',userController.s~~~ignin)
 
-router.get('/signup',userController.loadSignup)
-router.post('/signup',userController.signup)
+router.get('/signup', userController.loadSignup);
+router.post('/verify-otp', userController.verifyOtp);
+router.post('/signup', userController.signup);
 
-router.get('*',userController.pagenotfound);
+router.get('*', userController.pagenotfound);
 
 // Route for fetching user profile (example of protected route)
 router.get('/profile', (req, res) => {

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/otpStyles.css"> <!-- External CSS file -->
+</head>
+<body>
+
+    <div class="container">
+        <h2>Verify Your OTP</h2>
+        <p>Please enter the OTP sent to your email</p>
+        
+        <!-- Display error message if exists -->
+        <% if (message) { %>
+            <div class="error-message">
+                <p><%= message %></p>
+            </div>
+        <% } %>
+
+        <form action="/verify-otp" method="POST">
+            <input type="text" name="otp" class="otp-input" placeholder="Enter OTP" maxlength="6" required>
+            <br>
+            <button type="submit" class="submit-btn">Verify OTP</button>
+        </form>
+
+        <!-- Timer for OTP expiration -->
+        <p class="timer">Time remaining: <span id="timer">60</span> seconds</p>
+
+        <!-- Resend OTP option with countdown -->
+        <p>If you didn't receive an OTP, you can 
+            <button id="resend-btn" class="resend-btn disabled" disabled>Resend OTP</button> after 
+            <span id="resend-timer">30</span> seconds.
+        </p>
+    </div>
+
+    <script>
+        // Countdown timer for OTP verification
+        let timeLeft = 60;  // Time for the OTP to remain valid (in seconds)
+        const timerElement = document.getElementById('timer');
+        const resendTimerElement = document.getElementById('resend-timer');
+        const resendButton = document.getElementById('resend-btn');
+
+        // Countdown timer logic for OTP validity
+        const countdown = setInterval(() => {
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                window.location.href = '/signup';  // Redirect to signup page if time expires
+            } else {
+                timeLeft--;
+                timerElement.innerText = timeLeft;
+            }
+        }, 1000);
+
+        // Countdown for enabling resend OTP button
+        let resendTimeLeft = 30;  // Time before allowing OTP resend (in seconds)
+        const resendCountdown = setInterval(() => {
+            if (resendTimeLeft <= 0) {
+                clearInterval(resendCountdown);
+                resendButton.classList.remove('disabled');
+                resendButton.removeAttribute('disabled');
+            } else {
+                resendTimeLeft--;
+                resendTimerElement.innerText = resendTimeLeft;
+            }
+        }, 1000);
+
+        // Handle resend OTP button click
+        resendButton.addEventListener('click', () => {
+            fetch('/verifyOtp', {
+                method: 'POST',
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('OTP resent to your email.');
+                    // Reset resend timer and disable button again
+                    resendTimeLeft = 30;
+                    resendButton.classList.add('disabled');
+                    resendButton.setAttribute('disabled', true);
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
