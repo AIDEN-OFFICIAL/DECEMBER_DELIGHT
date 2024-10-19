@@ -7,7 +7,6 @@ const pagenotfound = async (req, res) => {
   res.status(404).render('notfound', { title: 'Page Not Found' });
 };
 
-// Load homepage function
 const loadHomePage = async (req, res) => {
   try {
     // Any logic for homepage rendering, like fetching data, can go here
@@ -27,7 +26,6 @@ const loadSignup = async (req, res) => {
     res.status(500).send('Server Error');
   }
 };
-
 
 function generateOtp() {
   return Math.floor(100000 + Math.random()* 900000).toString()
@@ -122,37 +120,53 @@ const signup = async (req, res) => {
 };
 
 const verifyOtp = async (req, res) => {
-  const { otp } = req.body;
+  const { otp, resend } = req.body;
 
-  // Check if OTP matches
-  if (otp !== req.session.userOtp) {
-    return res.render('verifyOtp', { message: 'Invalid OTP. Please try again.' });
+  if (resend) {
+      // Resend OTP logic
+      const newOtp = generateOtp();
+    const email = req.session.userData.email; 
+    console.log('Generated OTP:', newOtp);  // Log the new OTP to test if it's generated
+
+      const emailSent = await sendVerificationEmail(email, newOtp);
+    
+      if (!emailSent) {
+          return res.json({ success: false, message: "Error sending OTP" });
+      }
+      req.session.userOtp = newOtp; // Update OTP in session
+      return res.json({ success: true, message: "OTP resent successfully" });
   }
 
-  // If OTP matches, hash the password and save the user
+  // OTP verification logic
+  if (otp !== req.session.userOtp) {
+      return res.json({ success: false, message: "Invalid OTP" });
+  }
+
   try {
-    const { name, email, password } = req.session.userData;
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+      const { name, email, password } = req.session.userData;
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newUser = new User({ name, email, password: hashedPassword });
-    await newUser.save();
+      const newUser = new User({ name, email, password: hashedPassword });
+      await newUser.save();
 
-    // Clear OTP and session data after successful registration
-    req.session.userOtp = null;
-    req.session.userData = null;
+      // Clear OTP and session data after successful registration
+      req.session.userOtp = null;
+      req.session.userData = null;
 
-    return res.redirect('/signin');
+      return res.json({ success: true, message: "User verified successfully" });
   } catch (err) {
-    console.error('Error verifying OTP:', err);
-    res.status(500).send('Server Error');
+      console.error('Error verifying OTP:', err);
+      return res.status(500).send('Server Error');
   }
 };
 
-
 const loadSignin = async (req, res) => {
   try {
-    res.render('signin', { message: null });
+    const successMessage = req.session.successMessage;
+    req.session.successMessage = null; // Clear the message after retrieving it
+    res.render('signin', { successMessage });
+    // res.render('signin', { message: null });
   } catch (err) {
     console.log('error in signingup ', err);
     res.status(500).send('Server Error');

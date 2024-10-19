@@ -20,6 +20,14 @@
     </div>
     <div class="form-container">
       <h1>Sign In to <span>December Delight</span></h1>
+
+      <!-- Success Message Display -->
+      <% if (successMessage) { %>
+        <div class="success-message">
+          <p><%= successMessage %></p>
+        </div>
+      <% } %>
+
       <form action="/signin" method="POST">
         <div class="input-group">
           <label for="email">Email</label>
@@ -32,11 +40,12 @@
         <button type="submit" class="btn">Sign In</button>
         <p>Don't have an account? <a href="/signup">Sign Up</a></p>
       </form>
+
       <div style="text-align: center; margin-top: 20px;">
         <a href="/" style="display: inline-block; background-color: #2c4b2e; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-size: 18px; font-family: 'Poppins', sans-serif;">
           Back to Home 🏠
         </a>
-    </div>    
+      </div>    
     </div>
   </div>
   <script src="/scripts/signin.js"></script>
