@@ -4,6 +4,8 @@ const path = require('path');
 const session = require('express-session');
 const userRouter = require('./routes/userRouter');
 const dotenv = require('dotenv');
+const passport = require('./config/passport');
+
 
 dotenv.config();
 const app = express();
@@ -33,6 +35,9 @@ mongoose
 
 
 app.use('/', userRouter);
+app.use(passport.initialize);
+app.use(passport.session);
+
 
 const PORT = process.env.PORT || 3000;
 // Server

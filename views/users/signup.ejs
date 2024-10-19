@@ -27,6 +27,7 @@
                 <button type="submit" class="signup-btn">Sign Up</button>
             </form>
 
+            <!-- Display error message if any -->
             <% if (message) { %>
                 <div class="error-message"><%= message %></div>
             <% } %>
@@ -34,12 +35,22 @@
             <div class="link">
                 Already have an account? <a href="/signin">Sign In</a>
             </div>
-        
+
+            <!-- Google Sign Up Button -->
+            <div class="google-signup" style="margin-top: 20px; text-align: center;">
+                <p>or</p>
+                <a href="/auth/google" class="google-btn" style="display: inline-block; padding: 10px 20px; background-color: #010101; color: white; text-decoration: none; border-radius: 5px; font-size: 16px;">
+                    <img src="/images/google-logo.svg" alt="Google" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;">
+                    Sign Up with Google
+                </a>
+            </div>
+
             <div style="text-align: center; margin-top: 20px;">
-                <a href="/" style="display: inline-block; background-color: #2c4b2e; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-size: 18px; font-family: 'Poppins', sans-serif;">
+                <a href="/" style="display: inline-block;color: rgb(154, 118, 254); padding: 10px 20px; border-radius: 5px; font-size: 18px; font-family: 'Poppins', sans-serif;">
                     Back to Home 🏠
                 </a>
-    </div>
+            </div>    
+        </div>
     </div>
 </body>
 </html>

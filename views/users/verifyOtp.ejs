@@ -70,7 +70,7 @@ resendButton.addEventListener('click', () => {
     .then(data => {
         if (data.success) {
             alert('OTP resent to your email.');
-            resendTimeLeft = 30;
+            timeLeft = 60;
             resendButton.classList.add('disabled');
             resendButton.setAttribute('disabled', true);
         } else {

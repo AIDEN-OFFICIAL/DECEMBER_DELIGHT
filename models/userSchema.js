@@ -21,7 +21,7 @@ const userSchema = new Schema({
     },
     password: {
         type: String,
-        required: [true, 'Password is required'],
+        required: [false, 'Password is required'],
         minlength: [6, 'Password must be at least 6 characters long'],
     },
     phone: {
@@ -32,6 +32,10 @@ const userSchema = new Schema({
         required:false,
         match: [/^\d{10}$/, 'Please enter a valid phone number'],
 
+    },
+    googleId: {
+        type: String,
+        unique: true,
     },
     isBlocked: {
         type: Boolean,

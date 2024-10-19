@@ -325,7 +325,7 @@ ol {
   float: left;
 }
 .header__top__left ul li {
-  font-size: 14px;
+  font-size: 20px;
   color: #111111;
   list-style: none;
   display: inline-block;
@@ -386,7 +386,8 @@ ol {
 .header__logo {
   position: absolute;
   left: 50%;
-  top: 25px;
+  width: 10.5%;
+  top: -13.5px;
   margin-left: -60px;
 }
 .header__logo a {

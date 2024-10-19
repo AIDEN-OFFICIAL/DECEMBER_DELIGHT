@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controller/userController');
+const passport = require('passport');
 
 router.get('/', userController.loadHomePage);
 
@@ -11,6 +12,10 @@ router.get('/signup', userController.loadSignup);
 router.post('/verify-otp', userController.verifyOtp);
 router.post('/signup', userController.signup);
 
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/signup' }), (req, res) => {
+  res.redirect('/')
+});
 router.get('*', userController.pagenotfound);
 
 // Route for fetching user profile (example of protected route)

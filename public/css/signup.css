@@ -45,10 +45,10 @@ body {
 
 .signup-form .signup-btn {
     width: 100%;
-    padding: 12px;
+    padding: 10px;
     background-color: #b5651d;
     color: white;
-    border: none;
+    font-size: 18px;
     border-radius: 10px;
     cursor: pointer;
     transition: background-color 0.3s ease;
