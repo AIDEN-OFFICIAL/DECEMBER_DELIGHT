@@ -6,7 +6,7 @@ const passport = require('passport');
 router.get('/', userController.loadHomePage);
 
 router.get('/signin',userController.loadSignin)
-// router.get('/signin',userController.s~~~ignin)
+router.post('/signin',userController.signin)
 
 router.get('/signup', userController.loadSignup);
 router.post('/verify-otp', userController.verifyOtp);

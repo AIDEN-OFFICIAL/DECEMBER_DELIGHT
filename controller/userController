@@ -89,6 +89,10 @@ const signup = async (req, res) => {
     });
   }
 
+  if (password.length < 6) {
+    return res.render('signup',{ message: "Password must be at least 6 characters long" });
+  }
+  
   //password check
   if (password !== confirmPassword) {
     return res.render('signup', { message: 'Passwords do not match' });
@@ -144,10 +148,8 @@ const verifyOtp = async (req, res) => {
 
   try {
       const { name, email, password } = req.session.userData;
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-
-      const newUser = new User({ name, email, password: hashedPassword });
+    
+      const newUser = new User({ name, email, password});
       await newUser.save();
 
       // Clear OTP and session data after successful registration
@@ -163,30 +165,46 @@ const verifyOtp = async (req, res) => {
 
 const loadSignin = async (req, res) => {
   try {
-    const successMessage = req.session.successMessage;
-    req.session.successMessage = null; // Clear the message after retrieving it
-    res.render('signin', { successMessage });
-    // res.render('signin', { message: null });
+    const successMessage = req.session.successMessage||"";
+    const errorMessage = req.session.message || "";
+  
+    req.session.successMessage = null;
+    req.session.message = null;
+
+    res.render('signin', { successMessage,errorMessage});
   } catch (err) {
     console.log('error in signingup ', err);
     res.status(500).send('Server Error');
   }
 };
 
-// const signin = async (req, res) => {
-//   const { name, email, password } = req.body;
-//   try {
-//     const existingUser = await User.findOne({ email });
-//     if (existingUser) {
-//       return res.redirect('/');
-//     }
-//   }
-//   catch (err) {
-//     console.log('error in signingup ', err)
-//     res.status(500).send('Server Error')
-//   }
+const signin = async (req, res) => {
+  const password  = req.body.password;
+  const email = req.body.email.toLowerCase().trim();
+  try {
+    const existingUser = await User.findOne({isAdmin:0,email:email });
+    if (!existingUser) {
+      return res.render("signin",{errorMessage:"Invalid credentials", successMessage: null })
+    }
+    if (existingUser.isBlocked) {
+      return res.render('signin',{errorMessage:"User is Blocked by ADMIN", successMessage: null })
+    }
+    const passwordMatch = await bcrypt.compare(password, existingUser.password)
+    if (!passwordMatch) {
+      return res.render("signin",{errorMessage:"Incorrect Password", successMessage: null })
+    }
 
-// }
+    req.session.user = existingUser._id
+
+    req.session.successMessage = 'Signed in successfully!';
+
+    return res.redirect('/');
+  }
+  catch (err) {
+    console.log('error in login ', err)
+    return res.render("signin",{errorMessage:"Login failed please try again later", successMessage: null })
+  }
+}
 
 module.exports = {
   loadHomePage,
@@ -194,6 +212,6 @@ module.exports = {
   loadSignin,
   signup,
   verifyOtp,
-  // signin,
+  signin,
   pagenotfound,
 };

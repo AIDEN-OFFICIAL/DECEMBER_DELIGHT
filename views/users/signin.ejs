@@ -28,6 +28,12 @@
         </div>
       <% } %>
 
+      <% if (errorMessage) { %>
+        <div class="error-message" style="color: red;">
+          <p><%= errorMessage %></p>
+        </div>
+      <% } %>
+      
       <form action="/signin" method="POST">
         <div class="input-group">
           <label for="email">Email</label>
