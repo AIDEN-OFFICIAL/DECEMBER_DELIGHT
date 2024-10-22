@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const path = require('path');
 const session = require('express-session');
 const userRouter = require('./routes/userRouter');
+const adminRouter = require('./routes/adminRouter');
 const dotenv = require('dotenv');
 const passport = require('./config/passport');
 
@@ -25,6 +26,9 @@ app.use(session({
   }
 }));
 
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.set("view engine", "ejs");
 app.set('views', [path.join(__dirname, 'views/users'),path.join(__dirname, 'views/admin')]);
 app.use(express.static(path.join(__dirname, 'public')));
@@ -35,8 +39,9 @@ mongoose
 
 
 app.use('/', userRouter);
-app.use(passport.initialize());
-app.use(passport.session());
+app.use('/',adminRouter);
+
+
 
 
 const PORT = process.env.PORT || 3000;

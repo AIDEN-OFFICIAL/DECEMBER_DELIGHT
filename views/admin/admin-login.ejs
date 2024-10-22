@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In - Cake Delight</title>
+  <link rel="stylesheet" href="/css/adminlogin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="cake-container">
+      <div class="cake">
+        <div class="layer layer-bottom"></div>
+        <div class="layer layer-middle"></div>
+        <div class="layer layer-top"></div>
+        <div class="icing"></div>
+        <div class="cherry"></div>
+      </div>
+    </div>
+    <div class="form-container">
+      <h1>Sign In to <span>December Delight</span></h1>
+
+      <% if (errorMessage) { %>
+        <div class="error-message" style="color: red;">
+          <p><%= errorMessage %></p>
+        </div>
+      <% } %>
+      
+      <form action="/admin" method="POST">
+        <div class="input-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="Enter your email" required>
+        </div>
+        <div class="input-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Enter your password" required>
+        </div>
+        <button type="submit" class="btn">Sign In</button>
+      </form>
+
+      <div style="text-align: center; margin-top: 20px;">
+        <a href="/" style="display: inline-block; color: rgb(59, 102, 255); padding: 10px 20px; border-radius: 5px; font-size: 18px; font-family: 'Poppins', sans-serif;">
+          Back to Home 🏠
+        </a>
+      </div>    
+    </div>
+  </div>
+  <script src="/scripts/signin.js"></script>
+</body>
+</html>

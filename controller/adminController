@@ -1,0 +1,58 @@
+const User = require('../models/userSchema');
+const mongoose = require('mongoose')
+const bcrypt = require('bcrypt');
+const env = require('dotenv').config();
+
+
+
+const loadLogin = async (req, res) => {
+    try {
+     if(req.session.admin){
+      return res.redirect('/admin/dashboard')
+     }
+     else{
+      res.render('admin-login', {errorMessage:null});
+     }
+    } catch (err) {
+      console.log('error in signingup ', err);
+      res.status(500).send('Server Error');
+    }
+};
+const login = async (req, res) => {
+    try {
+        
+        const { email, password } = req.body;
+        const admin = await User.findOne({ email, isAdmin: true });
+        if (admin) {
+            const passwordMatch= bcrypt.compare(password, admin.password);
+            if (passwordMatch) {
+                req.session.admin = true;
+                return res.redirect("/admin/dashboard")
+            }
+            else {
+                res.redirect("/admin")
+            }
+        }
+        else {
+            res.redirect("/admin")
+        }
+    }
+    catch (err) {
+        console.log("login error",err);
+        return res.redirect("/pageError")
+    }
+}
+  
+const loadDashboard = async (req, res) => {
+    try {
+        res.render('dashboard', { user: req.session.user });
+    } catch (error) {
+        res.redirect("/pageError")
+    }
+};
+  
+module.exports = {
+    loadLogin,
+    login,
+    loadDashboard,
+}

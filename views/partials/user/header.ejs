@@ -52,14 +52,20 @@
         </div>
         <div id="mobile-menu-wrap"></div>
         <div class="offcanvas__option">
+            <% if (user) { %>
+                <h6>
+                    <a href="/profile" class="user-name"><b><%= user.name %></b></a> | 
+                    <a href="/logout" class="logout-link"><b>Logout</b></a>
+                </h6>                                <% } else { %>
             <ul>
-                <li><a href="#">Login</a> <span class="arrow_carrot-down"></span>
+                <li><a href="/signin"><b>Login</b></a> <span class="arrow_carrot-down"></span>
                     <ul>
                         <li><a href="/signin" style="color: aliceblue;">Login</a> </li>
                         <li><a href="/signup" style="color: aliceblue;">SignUp</a> </li>
                     </ul>
                 </li>
             </ul>
+            <% } %> 
         </div>
     </div>
     <!-- Offcanvas Menu End -->
@@ -72,6 +78,11 @@
                     <div class="col-lg-12">
                         <div class="header__top__inner">
                             <div class="header__top__left">
+                                <% if (user) { %>
+                                    <h3>
+                                        <a href="/profile" class="user-name"><b><%= user.name %></b></a> | 
+                                        <a href="/logout" class="logout-link"><b>Logout</b></a>
+                                    </h3>                                <% } else { %>
                                 <ul>
                                     <li><a href="/signin"><b>Login</b></a> <span class="arrow_carrot-down"></span>
                                         <ul>
@@ -80,6 +91,7 @@
                                         </ul>
                                     </li>
                                 </ul>
+                                <% } %> 
                             </div>
                             <div class="header__logo">
                                 <a href="#"><img src="/images/logo.png" alt=""></a>

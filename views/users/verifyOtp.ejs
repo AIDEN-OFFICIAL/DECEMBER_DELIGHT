@@ -96,7 +96,8 @@ resendButton.addEventListener('click', () => {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    window.location.href = '/signin';  // Redirect to sign-in page on success
+                    alert(`${data.message}`);
+                    window.location.href = `/signin`;  // Redirect to sign-in page on success
                 } else {
                     // Display error message if OTP is incorrect
                     const errorMessage = document.getElementById('error-message');

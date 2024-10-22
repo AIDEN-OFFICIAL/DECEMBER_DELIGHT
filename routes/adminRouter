@@ -1,0 +1,26 @@
+
+const express = require('express');
+const router = express.Router();
+const adminController = require('../controller/adminController');
+
+const preventCache = (req, res, next) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    next();
+};
+  
+
+  
+router.get('/admin',adminController.loadLogin);
+router.post('/admin', adminController.login);
+router.get('/admin/dashboard', adminController.loadDashboard);
+
+// router.get('/admin/logout', adminController.handleAdminLogout);
+
+
+// router.get('/admin/signup',isAuthenticated,adminController.loadSignup);
+// router.post('/verify-otp', adminController.verifyOtp);
+// router.post('/admin/signup', adminController.signup);
+
+module.exports = router;

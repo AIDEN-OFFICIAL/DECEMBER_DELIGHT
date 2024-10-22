@@ -383,6 +383,38 @@ ol {
   color: #888888;
 }
 
+.user-name {
+  color: #000; /* Black color */
+  font-weight: bold;
+  text-decoration: none;
+  margin-right: 10px; 
+}
+
+.user-name:hover {
+  color:blue;
+  text-decoration: underline;
+}
+
+.logout-link {
+  color: #ff4d4d;
+  font-weight: bold;
+  text-decoration: none;
+  margin-left: 10px; 
+
+}
+
+.logout-link:hover {
+  color: #e60000; /* Darker red on hover */
+  text-decoration: underline;
+}
+
+.header__top__left h3 {
+  font-size: 16px;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
 .header__logo {
   position: absolute;
   left: 50%;
