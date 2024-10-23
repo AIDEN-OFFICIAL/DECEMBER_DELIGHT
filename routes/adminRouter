@@ -1,26 +1,36 @@
-
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controller/adminController');
+const customerController = require('../controller/customerController');
+const categoryController = require('../controller/categoryController');
+const { adminAuth } = require('../middlewares/auth');
 
 const preventCache = (req, res, next) => {
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-    res.set('Pragma', 'no-cache');
-    res.set('Expires', '0');
-    next();
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  next();
 };
-  
 
-  
-router.get('/admin',adminController.loadLogin);
+router.get('/admin', adminController.loadLogin);
 router.post('/admin', adminController.login);
-router.get('/admin/dashboard', adminController.loadDashboard);
+router.get('/admin/dashboard', adminAuth, adminController.loadDashboard);
+router.get('/admin/pageError', adminController.pageError);
+router.get('/admin/logout', adminController.logout);
+router.get('/admin/users', adminAuth, customerController.customerInfo);
 
-// router.get('/admin/logout', adminController.handleAdminLogout);
+router.get(
+  '/admin/blockCustomer',
+  adminAuth,
+  customerController.customerBlocked
+);
+router.get(
+  '/admin/unblockCustomer',
+  adminAuth,
+  customerController.customerUnblocked
+);
 
-
-// router.get('/admin/signup',isAuthenticated,adminController.loadSignup);
-// router.post('/verify-otp', adminController.verifyOtp);
-// router.post('/admin/signup', adminController.signup);
+router.get('/admin/category', adminAuth, categoryController.categoryInfo);
+router.post('/admin/addCategory', adminAuth, categoryController.addCategory);
 
 module.exports = router;

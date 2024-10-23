@@ -1,0 +1,115 @@
+/* General styles */
+.container {
+    margin-top: 50px;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* Search box styles */
+.search-box {
+    width: 400px;
+    margin: 0 auto;
+    padding: 5px;
+    border: 1px solid #ccc;
+    background-color: #f8f9fa;
+}
+
+.search-form {
+    display: flex;
+    justify-content: center;
+}
+
+.search-btn {
+    background-color: #28a745;
+    color: white;
+    border-radius: 20px;
+    padding: 5px 20px;
+    margin-left: 10px;
+}
+
+.search-box input {
+    width: 250px;
+    border-radius: 20px;
+    padding: 5px 15px;
+}
+
+/* Table styles */
+.table-custom {
+    width: 100%;
+    margin: 0 auto;
+    border-collapse: collapse;
+}
+
+.table-custom th, 
+.table-custom td {
+    padding: 15px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.table-custom th {
+    background-color: #f1f1f1;
+    color: #333;
+}
+
+.table-custom tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+/* Action buttons */
+.action-btn {
+    padding: 5px 15px;
+    border-radius: 5px;
+}
+
+.action-link {
+    text-decoration: none;
+    color: white;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+}
+
+.btn-success {
+    background-color: #28a745;
+}
+
+/* Pagination styles */
+.pagination-container {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+}
+
+.pagination {
+    padding-left: 0;
+    list-style: none;
+    display: flex;
+}
+
+.pagination li {
+    display: inline;
+}
+
+.page-link {
+    color: #007bff;
+    padding: 10px 15px;
+    margin: 0 5px;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: white;
+}
+
+.page-item.active .page-link {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.page-link:hover {
+    background-color: #f1f1f1;
+}

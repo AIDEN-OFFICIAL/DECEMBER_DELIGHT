@@ -245,4 +245,5 @@ module.exports = {
   signin,
   logout,
   pagenotfound,
+  
 };

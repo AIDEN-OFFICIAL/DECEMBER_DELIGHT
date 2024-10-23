@@ -1,3 +1,4 @@
+
 const User = require('../models/userSchema');
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt');
@@ -26,7 +27,8 @@ const login = async (req, res) => {
         if (admin) {
             const passwordMatch= bcrypt.compare(password, admin.password);
             if (passwordMatch) {
-                req.session.admin = true;
+                req.session.user = admin._id;
+                req.session.isAdmin = true;
                 return res.redirect("/admin/dashboard")
             }
             else {
@@ -50,9 +52,27 @@ const loadDashboard = async (req, res) => {
         res.redirect("/pageError")
     }
 };
+
+
+
+const logout = async (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Error during logout:', err);
+        return res.redirect('/pageError')
+      }
+      res.redirect('/admin');
+    }); 
+};
+  
+const pageError = async (req, res) => {
+    res.status(404).render('pageError', { title: 'Page Not Found' });
+};
   
 module.exports = {
     loadLogin,
     login,
     loadDashboard,
+    pageError,
+    logout,
 }
