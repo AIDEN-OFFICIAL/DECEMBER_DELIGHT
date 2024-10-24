@@ -37,4 +37,7 @@ router.post('/admin/removeCategoryOffer', adminAuth, categoryController.removeCa
 router.get('/admin/listCategory', adminAuth, categoryController.getListCategory);
 router.get('/admin/unlistCategory', adminAuth, categoryController.getUnlistCategory);
 
+router.get('/admin/editCategory', adminAuth, categoryController.getEditCategory);
+router.post('/admin/editCategory/:id', adminAuth, categoryController.editCategory);
+
 module.exports = router;
