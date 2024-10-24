@@ -32,5 +32,9 @@ router.get(
 
 router.get('/admin/category', adminAuth, categoryController.categoryInfo);
 router.post('/admin/addCategory', adminAuth, categoryController.addCategory);
+router.post('/admin/addCategoryOffer', adminAuth, categoryController.addCategoryOffer);
+router.post('/admin/removeCategoryOffer', adminAuth, categoryController.removeCategoryOffer);
+router.get('/admin/listCategory', adminAuth, categoryController.getListCategory);
+router.get('/admin/unlistCategory', adminAuth, categoryController.getUnlistCategory);
 
 module.exports = router;
