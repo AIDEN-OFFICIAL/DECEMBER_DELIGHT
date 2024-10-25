@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
 const adminController = require('../controller/adminController');
 const customerController = require('../controller/customerController');
 const categoryController = require('../controller/categoryController');
+const productController = require('../controller/productController');
 const { adminAuth } = require('../middlewares/auth');
+const path = require('path');
 
 const preventCache = (req, res, next) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
@@ -11,6 +14,23 @@ const preventCache = (req, res, next) => {
   res.set('Expires', '0');
   next();
 };
+
+
+const imageDir = path.join(__dirname, '../public/uploads/product-images');
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, imageDir); // Set destination to the image directory
+    },
+    filename: (req, file, cb) => {
+        // Create a unique filename using the current timestamp and original name
+        const uniqueSuffix = Date.now() + '-' + file.originalname.replace(/\s+/g, '-'); // Replace spaces with dashes
+        cb(null, uniqueSuffix); // Use the unique filename
+    },
+});
+
+const uploads = multer({ storage });
+
 
 router.get('/admin', adminController.loadLogin);
 router.post('/admin', adminController.login);
@@ -36,8 +56,11 @@ router.post('/admin/addCategoryOffer', adminAuth, categoryController.addCategory
 router.post('/admin/removeCategoryOffer', adminAuth, categoryController.removeCategoryOffer);
 router.get('/admin/listCategory', adminAuth, categoryController.getListCategory);
 router.get('/admin/unlistCategory', adminAuth, categoryController.getUnlistCategory);
-
 router.get('/admin/editCategory', adminAuth, categoryController.getEditCategory);
 router.post('/admin/editCategory/:id', adminAuth, categoryController.editCategory);
+
+router.get('/admin/addProducts/', adminAuth, productController.getProductAddPage);
+router.post('/admin/addProducts/', adminAuth, uploads.array("images",4),productController.addProducts);
+// router.get('/admin/products/', adminAuth,productController.addProducts);
 
 module.exports = router;

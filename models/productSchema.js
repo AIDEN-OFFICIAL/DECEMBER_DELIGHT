@@ -14,10 +14,21 @@ const productSchema = new Schema({
         required: [true, 'Product description is required'],
         trim: true,
     },
-    price: {
+    regularPrice: {
         type: Number,
-        required: [true, 'Product price is required'],
-        min: [0, 'Price must be a positive number'],
+        required: [true, 'Regular price is required'],
+        min: [0, 'Regular price must be a positive number'],
+    },
+    salePrice: {
+        type: Number,
+        min: [0, 'Sale price must be a positive number'],
+        validate: {
+            validator: function (value) {
+                // salePrice must be less than or equal to regularPrice
+                return value <= this.regularPrice;
+            },
+            message: 'Sale price should be less than or equal to the regular price',
+        },
     },
     category: {
         type: Schema.Types.ObjectId,
@@ -39,7 +50,7 @@ const productSchema = new Schema({
         enum: ['available', 'not available'],
         default: 'available',
     },
-    stockQuantity: {
+    quantity: {
         type: Number,
         default: 0,  
         min: [0, 'Stock quantity must be a positive number'],
