@@ -3,108 +3,119 @@ const Schema = mongoose.Schema;
 const bcrypt = require('bcrypt');
 
 // User Schema
-const userSchema = new Schema({
+const userSchema = new Schema(
+  {
     name: {
-        type: String,
-        required: [true, 'Name is required'],
-        trim: true,
-        minlength: [2, 'Name must be at least 2 characters'],
+      type: String,
+      required: [true, 'Name is required'],
+      trim: true,
+      minlength: [2, 'Name must be at least 2 characters'],
     },
     email: {
-        type: String,
-        required: [true, 'Email is required'],
-        unique: true,
-        lowercase: true,
-        trim: true,
-        match: [/.+\@.+\..+/, 'Please enter a valid email address'],
-        index: true, 
+      type: String,
+      required: [true, 'Email is required'],
+      unique: true,
+      lowercase: true,
+      trim: true,
+      match: [/.+\@.+\..+/, 'Please enter a valid email address'],
+      index: true,
     },
     password: {
-        type: String,
-        required: [false, 'Password is required'],
-        minlength: [6, 'Password must be at least 6 characters long'],
+      type: String,
+      required: [false, 'Password is required'],
+      minlength: [6, 'Password must be at least 6 characters long'],
     },
     phone: {
-        type: String,
-        unique: false,
-        sparse: true,
-        default: null,
-        required:false,
-        match: [/^\d{10}$/, 'Please enter a valid phone number'],
-
+      type: String,
+      unique: false,
+      sparse: true,
+      default: null,
+      required: false,
+      match: [/^\d{10}$/, 'Please enter a valid phone number'],
     },
     googleId: {
-        type: String,
-        unique: true,
+      type: String,
+      unique: true,
     },
     isBlocked: {
-        type: Boolean,
-        default: false,
+      type: Boolean,
+      default: false,
     },
     isAdmin: {
-        type: Boolean,
-        default: false,
+      type: Boolean,
+      default: false,
     },
-    cart: [{
+    cart: [
+      {
         type: Schema.Types.ObjectId,
-        ref: "Cart",
-    }],
+        ref: 'Cart',
+      },
+    ],
     wallet: {
-        type: Number,
-        default: 0,
+      type: Number,
+      default: 0,
     },
-    wishlist: [{
+    wishlist: [
+      {
         type: Schema.Types.ObjectId,
-        ref: "Wishlist"
-    }],
-    orderHistory: [{
+        ref: 'Wishlist',
+      },
+    ],
+    orderHistory: [
+      {
         type: Schema.Types.ObjectId,
-        ref: "Order"
-    }],
+        ref: 'Order',
+      },
+    ],
     referralCode: {
-        type: String,
-         index: true, 
+      type: String,
+      index: true,
     },
     redeemed: {
-        type: Boolean,
-        default:false,
+      type: Boolean,
+      default: false,
     },
-    redeemedUsers:[{
+    redeemedUsers: [
+      {
         type: Schema.Types.ObjectId,
-        ref: "User"
-    }],
-    searchHistory: [{
+        ref: 'User',
+      },
+    ],
+    searchHistory: [
+      {
         category: {
-            type: Schema.Types.ObjectId,
-            ref:"Category"
+          type: Schema.Types.ObjectId,
+          ref: 'Category',
         },
         searchOn: {
-            type: Date,
-            default:Date.now,
-        }
-    }]
-},{timestamps:true});
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+  },
+  { timestamps: true }
+);
 
 // Hash the password before saving the user
-userSchema.pre('save', async function(next) {
-    const user = this;
+userSchema.pre('save', async function (next) {
+  const user = this;
 
-    if (!user.isModified('password')) return next();
+  if (!user.isModified('password')) return next();
 
-    try {
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(user.password, salt);
-        next();
-    } catch (err) {
-        return next(err);
-    }
+  try {
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(user.password, salt);
+    next();
+  } catch (err) {
+    return next(err);
+  }
 });
 
 // Method to compare passwords for login
-userSchema.methods.comparePassword = async function(enteredPassword) {
-    return await bcrypt.compare(enteredPassword, this.password);
+userSchema.methods.comparePassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
 };
 
 // Export the model
 module.exports = mongoose.model('User', userSchema);
-

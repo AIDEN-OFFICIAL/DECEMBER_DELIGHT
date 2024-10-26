@@ -15,52 +15,84 @@ const preventCache = (req, res, next) => {
   next();
 };
 
-
 const imageDir = path.join(__dirname, '../public/uploads/product-images');
 
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, imageDir); // Set destination to the image directory
-    },
-    filename: (req, file, cb) => {
-        // Create a unique filename using the current timestamp and original name
-        const uniqueSuffix = Date.now() + '-' + file.originalname.replace(/\s+/g, '-'); // Replace spaces with dashes
-        cb(null, uniqueSuffix); // Use the unique filename
-    },
+  destination: (req, file, cb) => {
+    cb(null, imageDir); // Set destination to the image directory
+  },
+  filename: (req, file, cb) => {
+    // Create a unique filename using the current timestamp and original name
+    const uniqueSuffix =
+      Date.now() + '-' + file.originalname.replace(/\s+/g, '-'); // Replace spaces with dashes
+    cb(null, uniqueSuffix); // Use the unique filename
+  },
 });
 
 const uploads = multer({ storage });
 
-
-router.get('/admin', adminController.loadLogin);
-router.post('/admin', adminController.login);
-router.get('/admin/dashboard', adminAuth, adminController.loadDashboard);
-router.get('/admin/pageError', adminController.pageError);
-router.get('/admin/logout', adminController.logout);
-router.get('/admin/users', adminAuth, customerController.customerInfo);
+router.get('/', adminController.loadLogin);
+router.post('/', adminController.login);
+router.get('/dashboard', adminAuth, adminController.loadDashboard);
+router.get('/pageError', adminController.pageError);
+router.get('/logout',preventCache, adminController.logout);
+router.get('/users', adminAuth, customerController.customerInfo);
 
 router.get(
-  '/admin/blockCustomer',
+  '/blockCustomer',
   adminAuth,
   customerController.customerBlocked
 );
 router.get(
-  '/admin/unblockCustomer',
+  '/unblockCustomer',
   adminAuth,
   customerController.customerUnblocked
 );
 
-router.get('/admin/category', adminAuth, categoryController.categoryInfo);
-router.post('/admin/addCategory', adminAuth, categoryController.addCategory);
-router.post('/admin/addCategoryOffer', adminAuth, categoryController.addCategoryOffer);
-router.post('/admin/removeCategoryOffer', adminAuth, categoryController.removeCategoryOffer);
-router.get('/admin/listCategory', adminAuth, categoryController.getListCategory);
-router.get('/admin/unlistCategory', adminAuth, categoryController.getUnlistCategory);
-router.get('/admin/editCategory', adminAuth, categoryController.getEditCategory);
-router.post('/admin/editCategory/:id', adminAuth, categoryController.editCategory);
+router.get('/category', adminAuth, categoryController.categoryInfo);
+router.post('/addCategory', adminAuth, categoryController.addCategory);
+router.post(
+  '/addCategoryOffer',
+  adminAuth,
+  categoryController.addCategoryOffer
+);
+router.post(
+  '/removeCategoryOffer',
+  adminAuth,
+  categoryController.removeCategoryOffer
+);
+router.get(
+  '/listCategory',
+  adminAuth,
+  categoryController.getListCategory
+);
+router.get(
+  '/unlistCategory',
+  adminAuth,
+  categoryController.getUnlistCategory
+);
+router.get(
+  '/editCategory',
+  adminAuth,
+  categoryController.getEditCategory
+);
+router.post(
+  '/editCategory/:id',
+  adminAuth,
+  categoryController.editCategory
+);
 
-router.get('/admin/addProducts/', adminAuth, productController.getProductAddPage);
-router.post('/admin/addProducts/', adminAuth, uploads.array("images",4),productController.addProducts);
-// router.get('/admin/products/', adminAuth,productController.addProducts);
+router.get(
+  '/addProducts/',
+  adminAuth,
+  productController.getProductAddPage
+);
+router.post(
+  '/addProducts/',
+  adminAuth,
+  uploads.array('images', 4),
+  productController.addProducts
+);
+// router.get('/products/', adminAuth,productController.addProducts);
 
 module.exports = router;

@@ -13,11 +13,10 @@ const loadHomePage = async (req, res) => {
     if (user) {
       const userData = await User.findOne({ _id: user._id });
       res.render('home', { user: userData });
-      console.log("yes there is user");
-    }
-    else {
-      console.log("no user");
-      res.render('home', {user: null }); 
+      console.log('yes there is user');
+    } else {
+      console.log('no user');
+      res.render('home', { user: null });
     }
   } catch (error) {
     console.error('Error loading homepage:', error);
@@ -27,10 +26,9 @@ const loadHomePage = async (req, res) => {
 
 const loadSignup = async (req, res) => {
   try {
-    if(req.session.user){
-      res.redirect('/')
-     }
-     else{
+    if (req.session.user) {
+      res.redirect('/');
+    } else {
       res.render('signup', { message: null });
     }
   } catch (err) {
@@ -40,7 +38,7 @@ const loadSignup = async (req, res) => {
 };
 
 function generateOtp() {
-  return Math.floor(100000 + Math.random()* 900000).toString()
+  return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 async function sendVerificationEmail(email, otp) {
@@ -51,30 +49,27 @@ async function sendVerificationEmail(email, otp) {
       secure: false,
       require: true,
       auth: {
-        user:process.env.NODEMAILER_EMAIL,
-        pass:process.env.NODEMAILER_PASSWORD
-      }
-    })
-  
-    
+        user: process.env.NODEMAILER_EMAIL,
+        pass: process.env.NODEMAILER_PASSWORD,
+      },
+    });
+
     const info = await transporter.sendMail({
       from: process.env.NODEMAILER_EMAIL,
       to: email,
-      subject: "Verify your account",
-      text:`Your OTP is ${otp}`,
-      html:`<b>Your otp is ${otp}</b>`, 
-    })
+      subject: 'Verify your account',
+      text: `Your OTP is ${otp}`,
+      html: `<b>Your otp is ${otp}</b>`,
+    });
 
-    return info.accepted.length >0
-  }
-  catch (err) {
-    console.error("Error sending email", err)
+    return info.accepted.length > 0;
+  } catch (err) {
+    console.error('Error sending email', err);
     return false;
   }
-  
 }
 
-const signup = async (req,  res) => {
+const signup = async (req, res) => {
   const name = req.body.name.trim();
   const email = req.body.email.trim();
   const password = req.body.password.trim();
@@ -102,9 +97,11 @@ const signup = async (req,  res) => {
   }
 
   if (password.length < 6) {
-    return res.render('signup',{ message: "Password must be at least 6 characters long" });
+    return res.render('signup', {
+      message: 'Password must be at least 6 characters long',
+    });
   }
-  
+
   //password check
   if (password !== confirmPassword) {
     return res.render('signup', { message: 'Passwords do not match' });
@@ -118,17 +115,16 @@ const signup = async (req,  res) => {
     }
 
     const otp = generateOtp();
-    const emailSent = await sendVerificationEmail(email, otp)
+    const emailSent = await sendVerificationEmail(email, otp);
     if (!emailSent) {
-      return res.json("email-error")
+      return res.json('email-error');
     }
 
-    req.session.userOtp=otp
-    req.session.userData = { name,email, password }
-    
-    res.render("verifyOtp", { message: null });
-    console.log("OTP sent:",otp)
+    req.session.userOtp = otp;
+    req.session.userData = { name, email, password };
 
+    res.render('verifyOtp', { message: null });
+    console.log('OTP sent:', otp);
   } catch (err) {
     console.error('Error in user signup:', err);
     res.status(500).send('Server Error');
@@ -137,60 +133,59 @@ const signup = async (req,  res) => {
 
 const verifyOtp = async (req, res) => {
   const { otp, resend } = req.body;
-  console.log("Received OTP:", otp); // Log received OTP
-  console.log("Stored OTP from session:", req.session.userOtp); // Log stored OTP
+  console.log('Received OTP:', otp); // Log received OTP
+  console.log('Stored OTP from session:', req.session.userOtp); // Log stored OTP
 
   if (resend) {
-      // Resend OTP logic
-      const newOtp = generateOtp();
-    const email = req.session.userData.email; 
-    console.log('Generated OTP:', newOtp);  
+    // Resend OTP logic
+    const newOtp = generateOtp();
+    const email = req.session.userData.email;
+    console.log('Generated OTP:', newOtp);
 
-      const emailSent = await sendVerificationEmail(email, newOtp);
-    
-      if (!emailSent) {
-       return res.json({ success: false, message: "Error sending OTP" });
-      }
-      req.session.userOtp = newOtp; // Update OTP in session
-      return res.json({ success: true, message: "OTP resent successfully" });
+    const emailSent = await sendVerificationEmail(email, newOtp);
+
+    if (!emailSent) {
+      return res.json({ success: false, message: 'Error sending OTP' });
+    }
+    req.session.userOtp = newOtp; // Update OTP in session
+    return res.json({ success: true, message: 'OTP resent successfully' });
   }
 
   // OTP verification logic
   if (otp !== req.session.userOtp) {
-    console.log("OTP mismatch"); // Log OTP mismatch
-      return res.json({ success: false, message: "Invalid OTP" });
+    console.log('OTP mismatch'); // Log OTP mismatch
+    return res.json({ success: false, message: 'Invalid OTP' });
   }
 
   try {
-      const { name, email, password } = req.session.userData;
-      const newUser = new User({ name, email, password});
-      await newUser.save();
+    const { name, email, password } = req.session.userData;
+    const newUser = new User({ name, email, password });
+    await newUser.save();
 
-      // Clear OTP and session data after successful registration
-      req.session.userOtp = null;
-      req.session.userData = null;
-      console.log("User verified successfully"); // Log success message
+    // Clear OTP and session data after successful registration
+    req.session.userOtp = null;
+    req.session.userData = null;
+    console.log('User verified successfully'); // Log success message
 
-      return res.json({ success: true, message: "User verified successfully" });
+    return res.json({ success: true, message: 'User verified successfully' });
   } catch (err) {
-      console.error('Error verifying OTP:', err);
-      return res.status(500).send('Server Error');
+    console.error('Error verifying OTP:', err);
+    return res.status(500).send('Server Error');
   }
 };
 
 const loadSignin = async (req, res) => {
   try {
-    const successMessage = req.session.successMessage||"";
-    const errorMessage = req.session.message || "";
-  
+    const successMessage = req.session.successMessage || '';
+    const errorMessage = req.session.message || '';
+
     req.session.successMessage = null;
     req.session.message = null;
-   if(req.session.user){
-    res.redirect('/')
-   }
-   else{
-    res.render('signin', { successMessage,errorMessage});
-   }
+    if (req.session.user) {
+      res.redirect('/');
+    } else {
+      res.render('signin', { successMessage, errorMessage });
+    }
   } catch (err) {
     console.log('error in signingup ', err);
     res.status(500).send('Server Error');
@@ -201,40 +196,50 @@ const logout = async (req, res) => {
   req.session.destroy((err) => {
     if (err) {
       console.error('Error during logout:', err);
-      return res.redirect('/notfound')
+      return res.redirect('/notfound');
     }
     res.redirect('/');
-  }); 
+  });
 };
 
-
 const signin = async (req, res) => {
-  const password  = req.body.password;
+  const password = req.body.password;
   const email = req.body.email.toLowerCase().trim();
   try {
-    const existingUser = await User.findOne({isAdmin:0,email:email });
+    const existingUser = await User.findOne({ isAdmin: 0, email: email });
     if (!existingUser) {
-      return res.render("signin",{errorMessage:"Invalid credentials", successMessage: null })
+      return res.render('signin', {
+        errorMessage: 'Invalid credentials',
+        successMessage: null,
+      });
     }
     if (existingUser.isBlocked) {
-      return res.render('signin',{errorMessage:"User is Blocked by ADMIN", successMessage: null })
+      return res.render('signin', {
+        errorMessage: 'User is Blocked by ADMIN',
+        successMessage: null,
+      });
     }
-    const passwordMatch = await bcrypt.compare(password, existingUser.password)
+    const passwordMatch = await bcrypt.compare(password, existingUser.password);
     if (!passwordMatch) {
-      return res.render("signin",{errorMessage:"Incorrect Password", successMessage: null })
+      return res.render('signin', {
+        errorMessage: 'Incorrect Password',
+        successMessage: null,
+      });
     }
 
-    req.session.user = existingUser
+    req.session.user = existingUser;
 
     req.session.successMessage = 'Signed in successfully!';
 
     return res.redirect('/');
+  } catch (err) {
+    console.log('error in login ', err);
+    return res.render('signin', {
+      errorMessage: 'Login failed please try again later',
+      successMessage: null,
+    });
   }
-  catch (err) {
-    console.log('error in login ', err)
-    return res.render("signin",{errorMessage:"Login failed please try again later", successMessage: null })
-  }
-}
+};
 
 module.exports = {
   loadHomePage,
@@ -245,5 +250,4 @@ module.exports = {
   signin,
   logout,
   pagenotfound,
-  
 };

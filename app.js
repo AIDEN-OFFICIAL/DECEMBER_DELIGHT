@@ -39,7 +39,7 @@ mongoose
 
 
 app.use('/', userRouter);
-app.use('/',adminRouter);
+app.use('/admin',adminRouter);
 
 
 
