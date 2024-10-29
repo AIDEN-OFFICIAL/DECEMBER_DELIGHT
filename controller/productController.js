@@ -22,32 +22,32 @@ const addProducts = async (req, res) => {
     const productExists = await Product.findOne({
       name: products.productName,
     });
+
     if (!productExists) {
       const images = [];
-      if (req.files && req.files.length > 0) {
-        for (let i = 0; i < req.files.length; i++) {
-          const originalImagePath = req.files[i].path;
-          const resizedImagePath = path.join(
-            'public',
-            'uploads',
-            'product-images',
-            `${Date.now()}-${req.files[i].filename}`
-          );
-          await sharp(originalImagePath)
-            .resize({ width: 404, height: 440 })
-            .toFile(resizedImagePath);
-          images.push({
-            url: `/uploads/product-images/${path.basename(resizedImagePath)}`, // URL to access the image
-            altText: req.files[i].originalname, // Original name as alt text
-          });
-        }
+      const croppedImages = JSON.parse(products.croppedImages || '[]'); // Retrieve the cropped images array
+
+      for (let i = 0; i < croppedImages.length; i++) {
+        const base64Data = croppedImages[i].replace(/^data:image\/\w+;base64,/, ''); // Remove base64 header
+        const buffer = Buffer.from(base64Data, 'base64'); // Convert base64 to buffer
+        const filename = `${Date.now()}-${i}.jpg`;
+        const filePath = path.join('public', 'uploads', 'product-images', filename);
+
+        // Save the decoded file buffer
+        fs.writeFileSync(filePath, buffer);
+
+        images.push({
+          url: `/uploads/product-images/${filename}`, // URL to access the image
+          altText: `Product image ${i + 1}`, // Generic alt text, can be customized
+        });
       }
 
       const categoryId = await Category.findOne({ name: products.category });
-
       if (!categoryId) {
         return res.status(400).json('Invalid category name');
       }
+
+      // Create the new product document
       const newProduct = new Product({
         name: products.productName,
         description: products.description,
@@ -60,18 +60,18 @@ const addProducts = async (req, res) => {
         productOffer: products.productOffer || 0,
         createdOn: new Date(),
       });
+      
       await newProduct.save();
       return res.redirect('/admin/addProducts');
     } else {
-      return res
-        .status(400)
-        .json('Product already exists please try with another name');
+      return res.status(400).json('Product already exists, please try with another name');
     }
   } catch (error) {
     console.error('Error saving product', error);
     return res.redirect('/admin/pageError');
   }
 };
+
 
 module.exports = {
   getProductAddPage,

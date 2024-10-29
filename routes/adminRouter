@@ -29,7 +29,15 @@ const storage = multer.diskStorage({
   },
 });
 
-const uploads = multer({ storage });
+const uploads = multer({
+  storage: storage,
+  limits: {
+    fileSize: 2 * 1024 * 1024 * 4, //2mb
+    files: 6, // Maximum number of files
+    fieldSize: 10 * 1024 * 1024  // Increase field size limit to 10MB
+
+  },
+});
 
 router.get('/', adminController.loadLogin);
 router.post('/', adminController.login);
@@ -90,7 +98,7 @@ router.get(
 router.post(
   '/addProducts/',
   adminAuth,
-  uploads.array('images', 4),
+  uploads.array('images', 6),
   productController.addProducts
 );
 // router.get('/products/', adminAuth,productController.addProducts);
