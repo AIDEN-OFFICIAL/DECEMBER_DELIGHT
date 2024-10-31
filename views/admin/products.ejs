@@ -55,17 +55,19 @@
                 </td>
                 <td><%=data[i].quantity%></td>
                 <td>
-                
+                    <%if(data[i].isBlocked===false){%>
                     <button class="btn btn-danger" style="width: 80px;">
-                        <a href="" class="text-white" style="text-decoration: none;">Block</a>
+                        <a href="/admin/blockProduct?id=<%=data[i]._id%>" class="text-white" style="text-decoration: none;">Block</a>
                     </button>
+                    <%}else{%>
                     <button class="btn btn-success" style="width: 80px;">
-                        <a href="" class="text-white" style="text-decoration: none;">Unblock</a>
+                        <a href="/admin/unblockProduct?id=<%=data[i]._id%>" class="text-white" style="text-decoration: none;">Unblock</a>
                     </button>
+                    <%}%>
                 </td>
                 <td>
                     <button class="btn btn-info" style="width: 80px;">
-                        <a href="" class="text-white" style="text-decoration: none;">Edit</a>
+                        <a href="/admin/editProduct?id=<%=data[i]._id%>" class="text-white" style="text-decoration: none;">Edit</a>
                     </button>
                 </td>
             </tr>
@@ -116,7 +118,7 @@
                 },0); // Delay of 2 seconds before reload
               });
     }else{
-        Swal.fire('Failed', 'Offer could not be added', 'error');
+        Swal.fire('Failed', response.message, 'error');
     }
   }
 });
@@ -131,7 +133,7 @@ function removeOffer(ProductId){
     showCancelButton:true,
     confirmButton:'#3085d6',
     cancelButtonColor:'d33',
-    confirmButton:'#3085d6',
+    confirmButtonColor:'#3085d6',
     confirmButtonText: 'Yes, remove it!',
     timer:5000,
     timerProgressBar:true

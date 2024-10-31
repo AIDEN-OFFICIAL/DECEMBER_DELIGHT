@@ -48,6 +48,10 @@ const productSchema = new Schema(
         },
       },
     ],
+    isBlocked: {
+      type: Boolean,
+      default:false,
+    },
     status: {
       type: String,
       enum: ['available', 'not available'],
