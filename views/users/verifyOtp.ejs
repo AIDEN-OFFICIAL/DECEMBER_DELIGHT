@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OTP Verification</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="/css/otpStyles.css">
 </head>
 <body>
@@ -23,8 +24,9 @@
         </form>
 
         <p class="timer">Time remaining: <span id="timer">60</span> seconds</p>
-        <p>If you didn't receive an OTP, you can <button id="resend-btn" class="resend-btn disabled" disabled>Resend OTP</button> after <span id="resend-timer">30</span> seconds.</p>
+        <p>If you didn't receive an OTP, you can <button id="resend-btn" class="resend-btn disabled" disabled>Resend OTP</button>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         // Countdown timer for OTP verification
@@ -69,8 +71,13 @@ resendButton.addEventListener('click', () => {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('OTP resent to your email.');
-            timeLeft = 60;
+            Swal.fire({
+                title: 'Success!',
+                text: 'OTP resent to your email.',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+             timeLeft = 60;
             resendButton.classList.add('disabled');
             resendButton.setAttribute('disabled', true);
         } else {
@@ -96,8 +103,17 @@ resendButton.addEventListener('click', () => {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(`${data.message}`);
-                    window.location.href = `/signin`;  // Redirect to sign-in page on success
+                    Swal.fire({
+                title: 'Success!',
+                text: data.message,
+                icon: 'success',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                // Delay before redirecting
+                setTimeout(() => {
+                    window.location.href = `/signin`; // Redirect after 2 seconds
+                }, 1000); 
+            });  // Redirect to sign-in page on success
                 } else {
                     // Display error message if OTP is incorrect
                     const errorMessage = document.getElementById('error-message');

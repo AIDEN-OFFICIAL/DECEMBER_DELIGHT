@@ -1,4 +1,6 @@
 const User = require('../models/userSchema');
+const Category = require('../models/categorySchema');
+const Product = require('../models/productSchema');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const env = require('dotenv').config();
@@ -10,13 +12,23 @@ const pagenotfound = async (req, res) => {
 const loadHomePage = async (req, res) => {
   try {
     const user = req.session.user;
+    const categories = await Category.find({ isListed: true });
+
+    let productData = await Product.find({
+      isBlocked: false,
+      category: { $in: categories.map(category => category._id) },
+      quantity: { $gt: 0 }
+    }).populate('category') // Add this to populate the category field
+    .sort({ createdAt: -1 })
+    .limit(8);
+   
+    productData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
     if (user) {
       const userData = await User.findOne({ _id: user._id });
-      res.render('home', { user: userData });
-      console.log('yes there is user');
+      res.render('home', { user: userData, products:productData });
     } else {
-      console.log('no user');
-      res.render('home', { user: null });
+      res.render('home', { user: null , products:productData });
     }
   } catch (error) {
     console.error('Error loading homepage:', error);
@@ -241,6 +253,33 @@ const signin = async (req, res) => {
   }
 };
 
+const viewProduct = async (req, res) => {
+  try {
+    const productId = req.params.id; // Get the product ID from the URL
+    const product = await Product.findById(productId).populate('category'); // Find the product by ID and populate the category
+    
+    if (!product) {
+      return res.status(404).send('Product not found');
+    }
+    
+    const user = req.session.user; // Retrieve user session data
+    res.render('productDetails', { product, user }); // Pass both product and user data to the view
+  } catch (error) {
+    console.error('Error retrieving product:', error);
+    res.status(500).send('Server error while retrieving product');
+  }
+};
+const getShop = async (req, res) => {
+  try {
+    const products = await Product.find(); // Find the product by ID and populate the category
+  
+    const user = req.session.user; // Retrieve user session data
+    res.render('shop', { products, user }); // Pass both product and user data to the view
+  } catch (error) {
+    console.error('Error retrieving product:', error);
+    res.status(500).send('Server error while retrieving product');
+  }
+};
 module.exports = {
   loadHomePage,
   loadSignup,
@@ -250,4 +289,6 @@ module.exports = {
   signin,
   logout,
   pagenotfound,
+  viewProduct,
+  getShop,
 };

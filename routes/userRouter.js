@@ -42,4 +42,7 @@ router.get('/logout', userController.logout);
 
 router.get('/pageError', userController.pagenotfound);
 
+router.get('/products/:id', userController.viewProduct);
+
+router.get('/shop', userController.getShop);
 module.exports = router;

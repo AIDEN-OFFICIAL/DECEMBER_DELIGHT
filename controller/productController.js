@@ -11,7 +11,7 @@ const getProductAddPage = async (req, res) => {
       cat: category,
     });
   } catch (error) {
-    res.redirect('/pageError');
+    res.redirect('/admin/pageError');
   }
 };
 
@@ -112,7 +112,7 @@ const getAllProducts = async (req, res) => {
     }
   } catch (error) {
     console.error('Error in getAllProducts:', error);
-    res.redirect('/pageError');
+    res.redirect('/admin/pageError');
   }
 };
 
@@ -159,7 +159,7 @@ const addProductOffer = async (req, res) => {
     res.json({ status: true, message: 'Offer added successfully' });
   } catch (error) {
     console.error(error);
-    res.redirect('/pageError');
+    res.redirect('/admin/pageError');
     res.status(500).json({ status: false, message: 'Internal server error' });
   }
 };
@@ -181,7 +181,7 @@ const removeProductOffer = async (req, res) => {
     await findProduct.save();
     res.json({ status: true });
   } catch (error) {
-    res.redirect('/pageError');
+    res.redirect('/admin/pageError');
   }
 };
 
@@ -198,11 +198,11 @@ const blockProduct = async (req, res) => {
       res.redirect('/admin/products');
     } else {
       console.error('Product not found or update failed');
-      res.redirect('/pageError');
+      res.redirect('/admin/pageError');
     }
   } catch (error) {
     console.error('Error while blocking product:', error);
-    res.redirect('/pageError');
+    res.redirect('/admin/pageError');
   }
 };
 
@@ -228,12 +228,12 @@ const getEditProduct = async (req, res) => {
       cat: category,
     });
   } catch (error) {
-    res.redirect('/pageError');
+    res.redirect('/admin/pageError');
   }
 };
 
 const editProduct = async (req, res) => {
-try {
+  try {
   let id = req.params.id;
   const product = await Product.findOne({ _id: id });
   const data = req.body;
@@ -286,7 +286,7 @@ try {
   res.status(200).json({ success: true }); // Send success response
 } catch (error) {
   console.error(error);
-  res.redirect('/pageError');
+  res.redirect('/admin/pageError');
 }
 };
 
