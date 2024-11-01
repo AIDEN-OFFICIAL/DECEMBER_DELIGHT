@@ -11,13 +11,12 @@ const preventCache = (req, res, next) => {
   next();
 };
 
+router.get('/', preventCache, userController.loadHomePage);
 
-router.get('/', preventCache,userController.loadHomePage);
-
-router.get('/signin',  userController.loadSignin);
+router.get('/signin', userController.loadSignin);
 router.post('/signin', userController.signin);
 
-router.get('/signup',  userController.loadSignup);
+router.get('/signup', userController.loadSignup);
 router.post('/verify-otp', userController.verifyOtp);
 router.post('/signup', userController.signup);
 
@@ -34,7 +33,7 @@ router.get(
   }
 );
 
-router.get('/profile', (req, res) => {
+router.get('/profile',userAuth, (req, res) => {
   res.send('User profile route');
 });
 
@@ -42,7 +41,7 @@ router.get('/logout', userController.logout);
 
 router.get('/pageError', userController.pagenotfound);
 
-router.get('/products/:id', userController.viewProduct);
+router.get('/products/:id',userAuth, userController.viewProduct);
 
-router.get('/shop', userController.getShop);
+router.get('/shop',userAuth, userController.getShop);
 module.exports = router;

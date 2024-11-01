@@ -4,20 +4,29 @@ const userAuth = (req, res, next) => {
   if (req.session.user) {
     User.findById(req.session.user)
       .then((data) => {
-        if (data && !data.isBlocked) {
-          next();
+        if (data) {
+          if (!data.isBlocked) {
+            next();
+          } else {
+            // User is blocked, redirect to login page with a message (optional)
+            req.session.destroy(); // Optional: destroy session to clear any user data
+            res.redirect('/signin');
+          }
         } else {
-          res.redirect('/');
+          // If user data not found in database, redirect to login
+          res.redirect('/signin');
         }
       })
       .catch((error) => {
-        console.log('error in user auth middleware');
-        res.status(500).send('Internal Server error');
+        console.error('Error in user auth middleware:', error);
+        res.status(500).send('Internal Server Error');
       });
   } else {
-    res.redirect('/login');
+    // If no session user, redirect to login
+    next();
   }
 };
+
 
 const adminAuth = (req, res, next) => {
     if (req.session.admin) {

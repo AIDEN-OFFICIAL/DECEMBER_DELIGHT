@@ -9,6 +9,7 @@ const passport = require('./config/passport');
 
 
 
+
 dotenv.config();
 const app = express();
 
@@ -37,7 +38,15 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected successfully'))
   .catch((err) => console.error('MongoDB connection error:', err));
-
+  const preventCache = (req, res, next) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    next();
+  };
+  
+  // Apply preventCache middleware globally
+  app.use(preventCache);
 
 app.use('/', userRouter);
 app.use('/admin',adminRouter);

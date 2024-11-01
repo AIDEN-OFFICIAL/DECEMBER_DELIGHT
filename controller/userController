@@ -16,19 +16,20 @@ const loadHomePage = async (req, res) => {
 
     let productData = await Product.find({
       isBlocked: false,
-      category: { $in: categories.map(category => category._id) },
-      quantity: { $gt: 0 }
-    }).populate('category') // Add this to populate the category field
-    .sort({ createdAt: -1 })
-    .limit(8);
-   
+      category: { $in: categories.map((category) => category._id) },
+      quantity: { $gt: 0 },
+    })
+      .populate('category') // Add this to populate the category field
+      .sort({ createdAt: -1 })
+      .limit(8);
+
     productData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    
+
     if (user) {
       const userData = await User.findOne({ _id: user._id });
-      res.render('home', { user: userData, products:productData });
+      res.render('home', { user: userData, products: productData });
     } else {
-      res.render('home', { user: null , products:productData });
+      res.render('home', { user: null, products: productData });
     }
   } catch (error) {
     console.error('Error loading homepage:', error);
@@ -257,11 +258,11 @@ const viewProduct = async (req, res) => {
   try {
     const productId = req.params.id; // Get the product ID from the URL
     const product = await Product.findById(productId).populate('category'); // Find the product by ID and populate the category
-    
+
     if (!product) {
       return res.status(404).send('Product not found');
     }
-    
+
     const user = req.session.user; // Retrieve user session data
     res.render('productDetails', { product, user }); // Pass both product and user data to the view
   } catch (error) {
@@ -272,7 +273,7 @@ const viewProduct = async (req, res) => {
 const getShop = async (req, res) => {
   try {
     const products = await Product.find(); // Find the product by ID and populate the category
-  
+
     const user = req.session.user; // Retrieve user session data
     res.render('shop', { products, user }); // Pass both product and user data to the view
   } catch (error) {

@@ -27,6 +27,8 @@
     .zoom-img {
         width: 100%; /* Ensure it scales with the container */
         max-width: 100%; /* Limit the size */
+        transition: transform 0.2s ease; /* Smooth transition */
+
     }</style>
     
     
@@ -36,10 +38,13 @@
             <div class="row">
                 <div class="col-lg-6">
                     <div class="product__details__img">
-                        <div class="product__details__big__img">
+                        <div class="product__details__big__img zoom-container" 
+                             onmousemove="zoomIn(event)" 
+                             onmouseleave="resetZoom()">
                             <!-- Main image with zoom functionality -->
-                            <img id="zoom_01" class="zoom-img" src="<%= product.images[0].url %>" 
-                                 data-zoom-image="<%= product.images[0].url %>" 
+                            <img id="zoomable-image" 
+                                 class="zoom-img" 
+                                 src="<%= product.images[0].url %>" 
                                  alt="<%= product.name %>">
                         </div>
                         <div class="product__details__thumb">
@@ -56,7 +61,7 @@
                     <div class="product__details__text">
                         <div class="product__label"><%= product.category.name %></div> <!-- Display the category name -->
                         <h4><%= product.name %></h4> <!-- Display the product name -->
-                        <h5>Rs.<%= product.regularPrice.toFixed(2) %></h5> <!-- Display the regular price, formatted to two decimal places -->
+                        <h5>Rs.<%= product.salePrice.toFixed(2) %></h5> <!-- Display the regular price, formatted to two decimal places -->
                         <p><%= product.description %></p> <!-- Display the product description -->
                         <ul>
                             <li>Qty: <span><%= product.quantity %></span></li> <!-- Display the product SKU (ID) -->
@@ -243,30 +248,37 @@
     </section>
     <!-- Related Products Section End -->
     <script>
-        // Select the main zoom image and thumbnail images
-        const zoomImage = document.getElementById('zoom_01');
-        const thumbnails = document.querySelectorAll('.thumbImage');
+        // Zoom factor
+        const zoomFactor = 2;
     
-        // Function to zoom the image
-        const zoomIn = (event) => {
-            zoomImage.style.transform = 'scale(2)'; // Adjust the scale factor as needed
-            zoomImage.style.transition = 'transform 0.2s ease'; // Add transition for smooth effect
-        };
+        function zoomIn(event) {
+            const zoomableImage = document.getElementById('zoomable-image');
+            const rect = zoomableImage.getBoundingClientRect();
     
-        const zoomOut = () => {
-            zoomImage.style.transform = 'scale(1)'; // Reset the scale when not hovering
-        };
+            // Calculate the mouse position relative to the image
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
     
-        // Add event listeners for mouse over and out
-        zoomImage.addEventListener('mouseover', zoomIn);
-        zoomImage.addEventListener('mouseout', zoomOut);
+            // Calculate transform origin based on mouse position
+            const originX = (x / rect.width) * 100;
+            const originY = (y / rect.height) * 100;
     
-        // Thumbnail click event to change the main image
-        thumbnails.forEach(thumbnail => {
+            // Apply scale and origin for zoom effect
+            zoomableImage.style.transformOrigin = `${originX}% ${originY}%`;
+            zoomableImage.style.transform = `scale(${zoomFactor})`;
+        }
+    
+        function resetZoom() {
+            const zoomableImage = document.getElementById('zoomable-image');
+            zoomableImage.style.transform = 'scale(1)'; // Reset scale when mouse leaves
+        }
+    
+        // Change main image on thumbnail click
+        document.querySelectorAll('.thumbImage').forEach(thumbnail => {
             thumbnail.addEventListener('click', function() {
                 const newSrc = this.getAttribute('data-imgbigurl');
-                zoomImage.src = newSrc; // Change the main image source
-                zoomImage.setAttribute('data-zoom-image', newSrc); // Update data-zoom-image attribute
+                const zoomableImage = document.getElementById('zoomable-image');
+                zoomableImage.src = newSrc;
             });
         });
     </script>

@@ -1,0 +1,20 @@
+/* Darker Shades (good for headers or buttons):
+
+#c66b29 - A deeper, richer orange.
+#a55b21 - Adds contrast while staying in the orange spectrum.
+Lighter Shades (for backgrounds or highlights):
+
+#ffa457 - A softer, peach-like shade.
+#ffbb8b - A warm, pastel orange.
+Complementary Shades (for variety in buttons or notification highlights):
+
+#b54a21 - A red-orange for high-contrast elements.
+#f0a86d - Light tan that maintains the warmth. */
+.test{
+ color:#c66b29;   
+ color:#a55b21;   
+ color:#ff8c2e;   
+ color:#ffbb8b;   
+ color:#b54a21;   
+ color:#ffa457;   
+}
