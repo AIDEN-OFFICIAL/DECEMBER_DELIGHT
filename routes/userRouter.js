@@ -33,7 +33,7 @@ router.get(
   }
 );
 
-router.get('/profile',userAuth, (req, res) => {
+router.get('/profile', userAuth, (req, res) => {
   res.send('User profile route');
 });
 
@@ -41,7 +41,7 @@ router.get('/logout', userController.logout);
 
 router.get('/pageError', userController.pagenotfound);
 
-router.get('/products/:id',userAuth, userController.viewProduct);
+router.get('/products/:id', userAuth, userController.viewProduct);
 
-router.get('/shop',userAuth, userController.getShop);
+router.get('/shop', userAuth, userController.getShop);
 module.exports = router;

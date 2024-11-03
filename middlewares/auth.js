@@ -8,12 +8,10 @@ const userAuth = (req, res, next) => {
           if (!data.isBlocked) {
             next();
           } else {
-            // User is blocked, redirect to login page with a message (optional)
-            req.session.destroy(); // Optional: destroy session to clear any user data
+            req.session.destroy();
             res.redirect('/signin');
           }
         } else {
-          // If user data not found in database, redirect to login
           res.redirect('/signin');
         }
       })
@@ -22,7 +20,6 @@ const userAuth = (req, res, next) => {
         res.status(500).send('Internal Server Error');
       });
   } else {
-    // If no session user, redirect to login
     next();
   }
 };

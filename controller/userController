@@ -19,7 +19,7 @@ const loadHomePage = async (req, res) => {
       category: { $in: categories.map((category) => category._id) },
       quantity: { $gt: 0 },
     })
-      .populate('category') // Add this to populate the category field
+      .populate('category') 
       .sort({ createdAt: -1 })
       .limit(8);
 
@@ -175,7 +175,6 @@ const verifyOtp = async (req, res) => {
     const newUser = new User({ name, email, password });
     await newUser.save();
 
-    // Clear OTP and session data after successful registration
     req.session.userOtp = null;
     req.session.userData = null;
     console.log('User verified successfully'); // Log success message
@@ -209,7 +208,7 @@ const logout = async (req, res) => {
   req.session.destroy((err) => {
     if (err) {
       console.error('Error during logout:', err);
-      return res.redirect('/notfound');
+      return res.redirect('/pageError');
     }
     res.redirect('/');
   });

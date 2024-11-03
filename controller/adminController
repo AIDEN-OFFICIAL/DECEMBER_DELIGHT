@@ -20,16 +20,16 @@ const login = async (req, res) => {
     const { email, password } = req.body;
     const admin = await User.findOne({ email, isAdmin: true });
     if (admin) {
-        const passwordMatch = bcrypt.compare(password, admin.password);
-        console.log("admin email correct")
-        if (passwordMatch) {
-            req.session.admin = true;
+      const passwordMatch = bcrypt.compare(password, admin.password);
+      console.log('admin email correct');
+      if (passwordMatch) {
+        req.session.admin = true;
         return res.redirect('/admin/dashboard');
-        } else {
+      } else {
         res.redirect('/admin');
       }
     } else {
-        console.log("no admin")
+      console.log('no admin');
       res.redirect('/admin');
     }
   } catch (err) {
@@ -39,12 +39,12 @@ const login = async (req, res) => {
 };
 
 const loadDashboard = (req, res, next) => {
-    if (req.session && req.session.admin) {
-      res.render('dashboard', { admin: req.session.admin });
-    } else {
-      res.redirect('/admin');
-    }
-  };
+  if (req.session && req.session.admin) {
+    res.render('dashboard', { admin: req.session.admin });
+  } else {
+    res.redirect('/admin');
+  }
+};
 const logout = async (req, res) => {
   req.session.destroy((err) => {
     if (err) {

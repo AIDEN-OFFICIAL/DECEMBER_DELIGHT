@@ -1324,7 +1324,7 @@ ol {
   Breadcrumb
 -----------------------*/
 .breadcrumb-option {
-  padding-top: 60px;
+  padding-top: 4px;
 }
 
 .breadcrumb__text h2 {
@@ -1336,8 +1336,8 @@ ol {
 }
 
 .breadcrumb__links {
-  text-align: right;
-  padding-top: 15px;
+  text-align: left;
+  padding-top: 13px;
 }
 .breadcrumb__links a {
   font-size: 16px;
@@ -1428,7 +1428,7 @@ ol {
   Shop
 -----------------------*/
 .shop {
-  padding-top: 80px;
+  padding-top: 20px;
 }
 
 .shop__option {
@@ -1593,7 +1593,7 @@ ol {
   Product Details
 -----------------------*/
 .product-details {
-  padding-top: 90px;
+  padding-top: 25px;
   padding-bottom: 0;
 }
 

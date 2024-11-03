@@ -19,13 +19,12 @@ const imageDir = path.join(__dirname, '../public/uploads/product-images');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, imageDir); // Set destination to the image directory
+    cb(null, imageDir);
   },
   filename: (req, file, cb) => {
-    // Create a unique filename using the current timestamp and original name
     const uniqueSuffix =
       Date.now() + '-' + file.originalname.replace(/\s+/g, '-'); // Replace spaces with dashes
-    cb(null, uniqueSuffix); // Use the unique filename
+    cb(null, uniqueSuffix); 
   },
 });
 
@@ -34,7 +33,7 @@ const uploads = multer({
   limits: {
     fileSize: 2 * 1024 * 1024 * 4, //2mb
     files: 6, // Maximum number of files
-    fieldSize: 10 * 1024 * 1024  // Increase field size limit to 10MB
+    fieldSize: 10 * 1024 * 1024 ,
 
   },
 });
@@ -46,7 +45,7 @@ router.get('/pageError', adminController.pageError);
 router.get('/logout',preventCache, adminController.logout);
 router.get('/users', adminAuth, customerController.customerInfo);
 
-router.get(
+router.post(
   '/blockCustomer',
   adminAuth,
   customerController.customerBlocked
@@ -110,4 +109,5 @@ router.get('/editProduct', adminAuth, productController.getEditProduct)
 router.post('/editProduct/:id', adminAuth,uploads.array('croppedImages'), productController.editProduct)
 router.post('/deleteImage', adminAuth, productController.deleteImage)
 
+// router.get('/*',adminController.pageError)
 module.exports = router;

@@ -42,8 +42,10 @@ const customerInfo = async (req, res) => {
 const customerBlocked = async (req, res) => {
   try {
     let id = req.query.id;
-    await User.updateOne({ _id: id }, { $set: { isBlocked: true } });
-    res.redirect('/admin/users');
+   let result= await User.updateOne({ _id: id }, { $set: { isBlocked: true } })
+    if (result.modifiedCount > 0) {
+      res.status(200).json({ status: true, message: 'Confirm to block the User' });
+    }
   } catch (err) {
     res.redirect('/pageError');
   }
