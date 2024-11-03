@@ -20,17 +20,17 @@ const login = async (req, res) => {
     const { email, password } = req.body;
     const admin = await User.findOne({ email, isAdmin: true });
     if (admin) {
-      const passwordMatch = bcrypt.compare(password, admin.password);
-      console.log('admin email correct');
+      const passwordMatch = await bcrypt.compare(password, admin.password);
       if (passwordMatch) {
+        console.log('admin email correct');
         req.session.admin = true;
         return res.redirect('/admin/dashboard');
       } else {
-        res.redirect('/admin');
+        res.render('admin-login',{errorMessage:'Invalid Credentials'})
       }
     } else {
       console.log('no admin');
-      res.redirect('/admin');
+      res.render('admin-login',{errorMessage:'Invalid Credentials'})
     }
   } catch (err) {
     console.log('login error', err);
