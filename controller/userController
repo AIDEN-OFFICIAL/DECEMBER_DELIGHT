@@ -1,9 +1,11 @@
 const User = require('../models/userSchema');
 const Category = require('../models/categorySchema');
 const Product = require('../models/productSchema');
+const Cart = require('../models/cartSchema');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const env = require('dotenv').config();
+var shop = false;
 
 const pagenotfound = async (req, res) => {
   res.status(404).render('notfound', { title: 'Page Not Found' });
@@ -11,6 +13,7 @@ const pagenotfound = async (req, res) => {
 
 const loadHomePage = async (req, res) => {
   try {
+    shop = false;
     const user = req.session.user;
     const categories = await Category.find({ isListed: true });
 
@@ -186,13 +189,80 @@ const verifyOtp = async (req, res) => {
   }
 };
 
+const forgotPassword = async (req, res) => {
+  const { otp, resend } = req.body;
+  console.log('Received OTP:', otp); // Log received OTP
+  console.log('Stored OTP from session:', req.session.userOtp); // Log stored OTP
+
+  if (resend) {
+    // Resend OTP logic
+    const newOtp = generateOtp();
+    const email = req.session.userData.email;
+    console.log("forgorpass",email);
+    
+    console.log('Generated OTP:', newOtp);
+
+    const emailSent = await sendVerificationEmail(email, newOtp);
+
+    if (!emailSent) {
+      return res.json({ success: false, message: 'Error sending OTP' });
+    }
+    req.session.userOtp = newOtp; // Update OTP in session
+    return res.json({ success: true, message: 'OTP resent successfully' });
+  }
+
+  // OTP verification logic
+  if (otp !== req.session.userOtp) {
+    console.log('OTP mismatch'); // Log OTP mismatch
+    return res.json({ success: false, message: 'Invalid OTP' });
+  }
+
+  try {
+    req.session.userOtp = null;
+    console.log('User verified successfully'); // Log success message
+
+    return res.json({ success: true, message: 'User verified successfully' });
+  } catch (err) {
+    console.error('Error verifying OTP:', err);
+    return res.status(500).send('Server Error');
+  }
+};
+
+const getForgotPassword = async (req, res) => {
+  try {
+    res.render('resetPassword')
+  } catch (error) {
+    console.error('Error in loading reset password page', err);
+    return res.redirect('/pageError');
+  }
+}
+
+const resetPassword = async (req, res) => {
+  try {
+    const email = req.session.userData.email;
+    const password = req.body.password
+
+    
+    const user = await User.findOne({ email });
+
+    user.password = password;
+    console.log(user.password);
+    await user.save();
+    
+    req.session.userData = null;
+  } catch (error) {
+    console.error('Error resetting Password:', error);
+    return res.status(500).send('Server Error');
+  }
+}
+
 const loadSignin = async (req, res) => {
   try {
     const successMessage = req.session.successMessage || '';
     const errorMessage = req.session.message || '';
 
     req.session.successMessage = null;
-    req.session.message = null;
+    req.session.message = null ;
     if (req.session.user) {
       res.redirect('/');
     } else {
@@ -203,6 +273,7 @@ const loadSignin = async (req, res) => {
     res.status(500).send('Server Error');
   }
 };
+
 
 const logout = async (req, res) => {
   req.session.destroy((err) => {
@@ -253,6 +324,32 @@ const signin = async (req, res) => {
   }
 };
 
+const forgotOtp = async (req, res) => {
+  try {
+    if (req.session.user) {
+      res.redirect('/');
+    } else {
+      const email = req.query.email;
+      const otp = generateOtp();
+      const existingUser = await User.findOne({ email });
+      if (!existingUser) {
+        return res.render('signin', { errorMessage: 'Email is not registered please Signup',successMessage:null });
+      }
+      const emailSent = await sendVerificationEmail(email, otp);
+      if (!emailSent) {
+        return res.json('email-error');
+      }
+  
+      req.session.userOtp = otp;
+      req.session.userData = {email};  
+      res.render('forgotOtp');
+      console.log('OTP sent:', otp);
+    }
+  } catch (err) {
+    res.status(500).send('Server Error');
+  }
+};
+
 const viewProduct = async (req, res) => {
   try {
     const productId = req.params.id; // Get the product ID from the URL
@@ -271,15 +368,75 @@ const viewProduct = async (req, res) => {
 };
 const getShop = async (req, res) => {
   try {
-    const products = await Product.find(); // Find the product by ID and populate the category
+    shop = true;
+    let search = req.query.search || '';
+    const sort = req.query.sort || '';
+    const categoryId = req.query.categoryId;
+    const category = await Category.find({isListed:true});
+    console.log('Sort Option:', sort);
+    let query = {name: { $regex: search, $options: 'i' }}
+    if (categoryId) {
+      query.category = categoryId;
+    }
 
-    const user = req.session.user; // Retrieve user session data
-    res.render('shop', { products, user }); // Pass both product and user data to the view
+    let sortOption = {};
+
+    switch (sort) {
+      case 'asc':
+        sortOption = { name: 1 };
+        break;      
+        case 'desc':
+        sortOption = { name: -1 };
+        break;      
+        case 'highPrice':
+        sortOption = { salePrice: -1 };
+        break;      
+        case 'lowPrice':
+        sortOption = { salePrice: 1 };
+        break;      
+        case 'latest':
+        sortOption = { createdAt: -1 };
+        break;      
+      default:
+        sortOption = {};
+    }
+ 
+
+    const products = await Product.find(query).sort(sortOption).populate('category', 'name');;
+    console.log(sortOption);
+    
+    const user = req.session.user;
+    if (req.get('X-Requested-With') === 'XMLHttpRequest') {
+      return res.json({ products, category, categoryId, search, sort });
+  }
+    res.render('shop', { products, user ,category ,categoryId,search ,sort }); // Pass both product and user data to the view
   } catch (error) {
     console.error('Error retrieving product:', error);
     res.status(500).send('Server error while retrieving product');
   }
 };
+const getCart = async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) {
+      console.log("user not found.");
+      return res.status(401).json({ error: 'Login required to access the Cart.' });
+    }
+    const user = req.session.user;
+    const userId = req.session.user._id;
+    let cart = await Cart.findOne({ userId, status: 'active' }).populate('items.productId');
+    if (!cart) {
+      res.render('shoping-cart', { empty: true, user, shop })
+      shop = false;
+    }
+    else {
+      res.render('shoping-cart', { empty: false, cart, user, shop })
+      shop = false;
+    }
+    
+  } catch (error) {
+    res.redirect('/pageError');
+  }
+}
 module.exports = {
   loadHomePage,
   loadSignup,
@@ -287,6 +444,11 @@ module.exports = {
   signup,
   verifyOtp,
   signin,
+  forgotOtp,
+  forgotPassword,
+  getForgotPassword,
+  resetPassword,
+  getCart,
   logout,
   pagenotfound,
   viewProduct,

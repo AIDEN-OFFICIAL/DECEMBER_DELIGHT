@@ -28,6 +28,14 @@
     cursor: pointer;
     font-size: larger;
 }
+.dropdown-item {
+    display: flex;
+    align-items: center;
+}
+
+.dropdown-item input {
+    margin-right: 10px;
+}
 
 </style>
    <section class="content-main">
@@ -79,6 +87,33 @@
                                    </div>
                                </div>
                            </div>
+                           <div class="mb-4">
+                            <div class="dropdown">
+                                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Select Weights
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <label class="dropdown-item">
+                                        <input type="checkbox" value="1" class="weight-checkbox" checked disabled> 1 kg
+                                    </label>
+                                    <label class="dropdown-item">
+                                        <input type="checkbox" value="1.5" class="weight-checkbox"> 1.5 kg
+                                    </label>
+                                    <label class="dropdown-item">
+                                        <input type="checkbox" value="2" class="weight-checkbox"> 2 kg
+                                    </label>
+                                    <label class="dropdown-item">
+                                        <input type="checkbox" value="2.5" class="weight-checkbox"> 2.5 kg
+                                    </label>                                    
+                                    <label class="dropdown-item">
+                                        <input type="checkbox" value="5" class="weight-checkbox"> 5 kg
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- for parsing to body  -->
+                            <input type="hidden" id="selectedWeights" name="selectedWeights">
+                            <div id="weights-error" class="error-message"></div>
+                        </div>
                            <div class="card mb-4">
                                <div class="card-body">
                                    <div class="row gx-2">
@@ -287,6 +322,13 @@ function validateAndSubmit() {
     if (!validateForm()) {
         return false; // Prevent form submission if invalid
     }
+    const checkedWeights = Array.from(document.querySelectorAll('.weight-checkbox:checked'))
+    .map(checkbox => checkbox.value); 
+
+    // Set the value of the hidden input to the selected weights
+    document.getElementById('selectedWeights').value = JSON.stringify(checkedWeights);
+    console.log('Selected Weights:', document.getElementById('selectedWeights').value);
+
     const form = document.querySelector('form');
     const croppedImagesField = document.createElement('input');
     croppedImagesField.type = 'hidden';

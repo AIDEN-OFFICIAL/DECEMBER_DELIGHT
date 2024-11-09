@@ -75,6 +75,50 @@
 <!-- Search End -->
 
 <!-- Js Plugins -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+ <script>
+document.getElementById('orgcart').addEventListener('click', function (event) {
+        event.preventDefault();
+        fetch('/cart', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        }).then(response => {
+    if (!response.ok) {
+        // If the response status is not OK, throw an error to trigger the catch block
+        return response.json().then(error => { throw error; });
+    }
+    return response.json();
+})
+.catch((error) => {
+    if (error.error === 'Login required to access the Cart.') {
+        // Login required error handling with SweetAlert
+        Swal.fire({
+            icon: 'error',
+            title: 'Login Required',
+            text: error.error,
+            showCancelButton: true,
+            confirmButtonText: 'Login',
+            cancelButtonText: 'Cancel',
+            allowOutsideClick: false
+        }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/signin'; // Redirect to login if confirmed
+                }
+            });
+    } else {
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'An error occurred while adding the product to the cart.'
+        });
+    }
+});
+
+    })
+ </script>
+
 <script src="/js/jquery-3.3.1.min.js"></script>
 <script src="/js/bootstrap.min.js"></script>
 <script src="/js/jquery.nice-select.min.js"></script>

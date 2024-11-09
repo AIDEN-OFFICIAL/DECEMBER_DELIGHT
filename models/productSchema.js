@@ -66,6 +66,10 @@ const productSchema = new Schema(
       type: Number,
       required: false,
     },
+    weights: { 
+      type: [Number], 
+      required: [true, 'Weights are required'],
+    },
   },
   { timestamps: true }
 );

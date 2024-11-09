@@ -56,21 +56,31 @@
                     <div class="product__details__text">
                         <div class="product__label"><%= product.category.name %></div> <!-- Display the category name -->
                         <h4><%= product.name %></h4> <!-- Display the product name -->
-                        <h5>Rs.<%= product.salePrice.toFixed(2) %></h5> <!-- Display the regular price, formatted to two decimal places -->
+                        <h5 id="product-price">Rs <%= product.salePrice.toFixed(2) %></h5> <!-- Display the regular price, formatted to two decimal places -->
                         <p><%= product.description %></p> <!-- Display the product description -->
                         <ul>
-                            <li>Qty: <span><%= product.quantity %></span></li> <!-- Display the product SKU (ID) -->
+                            <li>Stock: <span><%= product.quantity %> </span></li>  <!-- Display the product SKU (ID) -->
                             <li>Category: <span><%= product.category.name %></span></li> <!-- Display the category name -->
                             <li>Status: <span style="color: rgb(33, 255, 3);"><%= product.status%></span></li> <!-- Display product tags if available -->
                         </ul>
                         <div class="product__details__option">
                             <div class="quantity">
-                                <div class="pro-qty">
-                                    <input type="text" value="1"> <!-- You can set the default value to 1 for quantity -->
+                                <div class="pro-qty" >
+                                    <input type="text" value="1" id="qtyVal" data-max="<%= product.quantity%>"> <!-- You can set the default value to 1 for quantity -->
                                 </div>
                             </div>
-                            <a href="#" class="primary-btn">Add to cart</a>
+                            
+                            <a href="#" id="addToCart" class="primary-btn">Add to cart</a>
                             <a href="#" class="heart__btn"><span class="icon_heart_alt"></span></a>
+                        </div>
+                        Select Weight:
+
+                        <div class="weight-select">
+                            <select id="weight" name="weight">
+                                <% product.weights.forEach(function(weight) { %>
+                                    <option value="<%= weight %>"><%= weight %> Kg</option>
+                                <% }) %>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -152,7 +162,7 @@
                                 <h6><a href="#">Dozen Cupcakes</a></h6>
                                 <div class="product__item__price">$32.00</div>
                                 <div class="cart_add">
-                                    <a href="#">Add to cart</a>
+                                    <a href="#" id="addToCart">Add to cart</a>
                                 </div>
                             </div>
                         </div>
@@ -242,8 +252,29 @@
         </div>
     </section>
     <!-- Related Products Section End -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
-        // Zoom factor
+document.addEventListener("DOMContentLoaded", function () {
+    const basePrice = parseFloat(<%= product.salePrice %>);    
+    const priceDisplay = document.getElementById('product-price');
+    function updatePrice() {
+        const weightSelect = document.querySelector('.nice-select .current'); // Select the wrapper
+        const selectedWeight = parseFloat(weightSelect ? weightSelect.textContent : 1);
+         newPrice = (basePrice * selectedWeight).toFixed(2);
+        priceDisplay.innerHTML = `Rs ${newPrice}`;
+    }
+
+    const selectWrapper = document.querySelector('.nice-select');
+    if (selectWrapper) {
+        selectWrapper.addEventListener('click', function () {
+            setTimeout(updatePrice, 50);  // Add delay for dropdown to update
+        });
+    } else {
+        console.error("Nice-select wrapper not found");
+    }
+});
+
         const zoomFactor = 2;
     
         function zoomIn(event) {
@@ -276,7 +307,71 @@
                 zoomableImage.src = newSrc;
             });
         });
-    </script>
-     
-    
-    <%- include('../partials/user/footer.ejs') %>
+
+        const addProductButton = document.getElementById('addToCart');
+
+        addProductButton.addEventListener('click',()=>{
+            const productId = '<%= product._id %>';
+            const quantityValue= document.getElementById('qtyVal').value;
+            const weightValue= document.getElementById('weight').value;
+            const priceNew = parseFloat(document.getElementById('product-price').innerText.replace('Rs ', ''));
+
+
+            const productData={
+                id:productId,
+                qty:quantityValue,
+                weight:weightValue,
+                price:priceNew,
+            }
+            
+            fetch('/cart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(productData)
+        }).then(response => {
+    if (!response.ok) {
+        // If the response status is not OK, throw an error to trigger the catch block
+        return response.json().then(error => { throw error; });
+    }
+    return response.json();
+}).then(data => {
+    if (data.message) {
+        // Success response handling
+        Swal.fire({
+            icon: 'success',
+            title: 'Added to Cart',
+            text: data.message,
+            confirmButtonText: 'OK'
+        });
+    }
+})
+.catch((error) => {
+    if (error.error === 'Login required to access the Cart.') {
+        // Login required error handling with SweetAlert
+        Swal.fire({
+            icon: 'error',
+            title: 'Login Required',
+            text: error.error,
+            showCancelButton: true,
+            confirmButtonText: 'Login',
+            cancelButtonText: 'Cancel',
+            allowOutsideClick: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/signin';  // Redirect to login page
+            }
+        });
+    } else {
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'An error occurred while adding the product to the cart.'
+        });
+    }
+});
+        });
+</script>
+      
+<%- include('../partials/user/footer.ejs') %>

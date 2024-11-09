@@ -22,33 +22,36 @@
                 <div class="row">
                     <div class="col-lg-7 col-md-7">
                         <div class="shop__option__search">
-                            <form action="#">
-                                <select>
-                                    <option value="">Categories</option>
-                                    <option value="">Red Velvet</option>
-                                    <option value="">Cup Cake</option>
-                                    <option value="">Biscuit</option>
+                            <form id="shop-filter-form" action="/shop" method="get">
+                                <select name="categoryId" value="<%= categoryId %>" onchange="document.getElementById('shop-filter-form').submit()">
+                                    <option value="">All Categories</option>
+                                    <% category.forEach(cat => { %>
+                                    <option value="<%=cat._id%>" <%= cat._id == categoryId ? 'selected' : '' %>><%= cat.name%></option>
+                                    <%});%>
                                 </select>
-                                <input type="text" placeholder="Search">
+                                <input type="text" placeholder="Search" name="search" value="<%= search %>">
                                 <button type="submit"><i class="fa fa-search"></i></button>
                             </form>
                         </div>
                     </div>
                     <div class="col-lg-5 col-md-5">
                         <div class="shop__option__right">
-                            <select>
+                            <select id="sortDropdown">
                                 <option value="">Default sorting</option>
-                                <option value="">A to Z</option>
-                                <option value="">1 - 8</option>
-                                <option value="">Name</option>
+                                <option value="asc" <%= sort === 'asc' ? 'selected' : '' %>>aA to zZ</option>
+                                <option value="desc" <%= sort === 'desc' ? 'selected' : '' %>>zZ to aA</option>
+                                <option value="highPrice" <%= sort === 'highPrice' ? 'selected' : '' %>>Price: high to low</option>
+                                <option value="lowPrice" <%= sort === 'lowPrice' ? 'selected' : '' %>>Price: low to high</option>
+                                <option value="latest" <%= sort === 'latest' ? 'selected' : '' %>>New arrivals</option>
                             </select>
                             <a href="#"><i class="fa fa-list"></i></a>
                             <a href="#"><i class="fa fa-reorder"></i></a>
                         </div>
                     </div>
+                    <input type="hidden" name="sort" id="sortInput">
                 </div>
             </div>
-            <div class="row">
+            <div class="row prod">
                 <% products.forEach(product => { %>
                     <div class="col-lg-3 col-md-6 col-sm-6">
                         <div class="product__item">
@@ -59,9 +62,9 @@
                             </div>
                             <div class="product__item__text">
                                 <h6><a href="/products/<%= product._id %>"><%= product.name %></a></h6>
-                                <div class="product__item__price">$<%= product.salePrice.toFixed(2) %></div>
+                                <div class="product__item__price">Rs <%= product.salePrice.toFixed(2) %></div>
                                 <div class="cart_add">
-                                    <a href="#">Add to cart</a>
+                                    <a href="/products/<%= product._id %>">Add to cart</a>
                                 </div>
                             </div>
                         </div>
@@ -88,4 +91,83 @@
         </div>
     </section>
     <!-- Shop Section End -->
+    <script>
+        $(document).ready(function () {
+            function applyBackgroundImages() {
+        $('.set-bg').each(function () {
+            const bg = $(this).data('setbg');
+            $(this).css('background-image', `url(${bg})`);
+        });
+    }
+
+    // Initial call to set background images
+    applyBackgroundImages();
+            $('#sortDropdown').on('change', function () {
+                const sortOption = $(this).val();
+                console.log('Selected sort option:', sortOption);
+                
+                // Prepare query parameters
+                const queryParams = new URLSearchParams({
+                    sort: sortOption,
+                    categoryId: '<%= categoryId %>', // Preserve categoryId
+                    search: '<%= search %>' // Preserve search text
+                });
+                console.log(`/shop?${queryParams.toString()}`);
+                // Send the fetch request to the backend
+                fetch(`/shop?${queryParams.toString()}`, {
+                    method: 'GET',
+                    headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest' // Custom header to mark AJAX request
+    },
+                })
+                .then(response => {
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return response.json();
+})
+.then(data => {
+        const productsContainer = $('.prod');
+        
+        // CLEARING existing products
+        productsContainer.empty();
+        console.log(data.products);
+
+       data.products.forEach(product => {    
+        const image = product.images[0].url ;
+        console.log(image);
+                       
+            const productHTML = `
+                        <div class="col-lg-3 col-md-6 col-sm-6">
+                            <div class="product__item">
+                                <div class="product__item__pic set-bg" data-setbg="${image}">
+                                    <div class="product__label">
+                                        <span>${product.category.name}</span>
+                                    </div>
+                                </div>
+                                <div class="product__item__text">
+                                    <h6><a href="/products/${product._id}">${product.name}</a></h6>
+                                    <div class="product__item__price">Rs ${product.salePrice.toFixed(2)}</div>
+                                    <div class="cart_add">
+                                        <a href="/products/${product._id}">Add to cart</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+            `;
+            // Append the new product HTML to the container
+            productsContainer.append(productHTML);
+        });
+        applyBackgroundImages();
+
+    })
+                .catch(error => {
+                    console.error('Error with fetch:', error);
+                });
+            });
+        });
+    </script>
+    
+    
     <%- include('../partials/user/footer.ejs') %>

@@ -1,0 +1,123 @@
+const Product = require('../models/productSchema');
+const Category = require('../models/categorySchema');
+const Cart = require('../models/cartSchema');
+const User = require('../models/userSchema');
+const fs = require('fs');
+const path = require('path');
+
+const cart = async (req, res) => {
+    try {
+        console.log("Starting cart process...");
+        if (!req.session || !req.session.user) {
+            console.log("user not found.");
+            return res.status(401).json({ error: 'Login required to access the Cart.' });
+        }
+        const userId = req.session.user._id;
+
+        const { id, qty, weight, price } = req.body;        
+        if (!id || !qty || !weight || !price) {
+            console.log("Missing required fields.");
+
+            return res.status(400).json({ error: 'User  ID, product ID, quantity,price and weight are required.' });
+        }
+        const product = await Product.findById(id);
+
+        if (!product) {
+            console.log("Product not found.");
+            
+            return res.status(404).json({ error: 'Product not found.' });
+        }
+        const item = {
+            productId: id,
+            quantity: qty,
+            price,
+            weight,
+            totalPrice: qty * price,
+        }
+        let cart = await Cart.findOne({ userId, status: 'active' });
+
+        if (!cart) {
+                cart =  new Cart({
+                userId,
+                items: [item],
+            });
+        } else {
+            const index = cart.items.findIndex(i => i.productId.toString() === id.toString());
+            
+            if (index > -1) {
+                const existingItem = cart.items[index];
+
+                if (existingItem.quantity !== qty || existingItem.weight !== weight) {
+                    existingItem.quantity = qty;
+                    existingItem.weight = weight; 
+                    existingItem.price = price; 
+                    existingItem.totalPrice = qty * price;
+                } else {
+                    console.log("No changes detected for quantity and weight.");
+                }
+            } else {
+                cart.items.push(item);
+            }
+        }
+        await cart.save();
+                console.log("Cart updated successfully.");
+
+        return res.status(200).json({ message: 'Product added to cart successfully!', cart });
+
+    } catch (error) {
+      res.redirect('/pageError');
+    }
+}
+
+const updateCart = async (req, res) => {
+    try {
+        const { items } = req.body;
+        const updatedItems = await Promise.all(items.map(async (item) => { 
+            const { productId, quantity, weight } = item;
+            const product = await Product.findById(productId);
+            if (!product) {
+                throw new Error(`Product with ID ${productId} not found`);
+            }
+            const salePrice = product.salePrice;
+            const totalPrice = salePrice * quantity;
+            
+            return {
+                productId,
+                quantity,
+                weight,
+                price: salePrice,
+                totalPrice
+            }
+        }));
+        const userId = req.session.user._id;
+        const newCart = await Cart.findOneAndUpdate({ userId, status:'active' }, { items: updatedItems }, { new: true });
+        await newCart.save();
+
+        res.status(200).json({ success: true, message: 'Cart updated successfully', cart: newCart });
+
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'An error occurred while updating the cart' });
+    }
+}
+const deleteCart = async (req, res)=>{
+    try {
+        const productId = req.params.id
+        const userId = req.session.user._id;
+
+        const cart = await Cart.findOneAndUpdate({ userId, status: 'active' },{$pull:{items:{productId}}},{new:true})
+   if (!cart) {
+       return res.status(404).json({ success: false, message: 'Cart or product not found' })
+        }
+        res.json({ success: true, message: 'Product removed from cart', cart });
+    } catch (error) {
+        console.error('Error deleting product from cart:', error);
+        res.status(500).json({ success: false, message: 'An error occurred while removing the product from the cart' });   
+    }
+}
+module.exports = {
+    cart,
+    updateCart,
+    deleteCart,
+};

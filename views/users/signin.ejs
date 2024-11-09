@@ -44,6 +44,7 @@
           <input type="password" id="password" name="password" placeholder="Enter your password" required>
         </div>
         <button type="submit" class="btn">Sign In</button>
+        <a href="#" id="forgotPasswordLink" style="text-decoration: none;">Forgot password?</a>
         <p>Don't have an account? <a href="/signup">Sign Up</a></p>
       </form>
 
@@ -62,6 +63,36 @@
       </div>    
     </div>
   </div>
-  <script src="/scripts/signin.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+
+    forgotPasswordLink.addEventListener('click', (event) => {
+        event.preventDefault();
+        const emailRegex = /.+\@.+\..+/;
+        const email = document.getElementById('email').value;
+        if (!email) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Please enter your email address.'
+                    });
+                    return;
+          }
+         else if (!emailRegex.test(email)) {
+            Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid error',
+                        text: 'Please enter a valid email address. (Must include "@" and ".")'
+                    });
+                   }
+                   else{
+                    window.location.href = `/verifyForgotPassword?email=${encodeURIComponent(email)}`;
+                   }
+    });
+  });
+
+  </script>
 </body>
 </html>

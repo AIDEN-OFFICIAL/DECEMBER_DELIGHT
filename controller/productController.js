@@ -17,6 +17,7 @@ const getProductAddPage = async (req, res) => {
 
 const addProducts = async (req, res) => {
   try {
+    const selectedWeights = JSON.parse(req.body.selectedWeights); // Parse the weights array    
     const products = req.body;
     const productExists = await Product.findOne({
       name: products.productName,
@@ -65,6 +66,7 @@ const addProducts = async (req, res) => {
         images: images,
         status: 'available',
         productOffer: products.productOffer || 0,
+        weights: selectedWeights,
         createdOn: new Date(),
       });
 
@@ -235,6 +237,7 @@ const getEditProduct = async (req, res) => {
 const editProduct = async (req, res) => {
   try {
   let id = req.params.id;
+  const selectedWeights = JSON.parse(req.body.selectedWeights); // Parse the weights array
   const product = await Product.findOne({ _id: id });
   const data = req.body;
   const existingProduct = await Product.findOne({
@@ -276,6 +279,8 @@ const editProduct = async (req, res) => {
     regularPrice: data.regularPrice,
     salePrice: data.salePrice,
     quantity: data.quantity,
+    weights: selectedWeights,
+
   };
 
   if (newImages.length > 0) {

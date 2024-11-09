@@ -1,0 +1,206 @@
+<%- include('../partials/user/header.ejs') %>
+<style>
+    .pname {
+    color: black;
+    text-decoration: none;
+    background-color: transparent;
+}
+.pname:hover{
+color: rgb(237, 103, 0);
+}
+</style>
+    <!-- Breadcrumb Begin -->
+    <div class="breadcrumb-option">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 col-md-6 col-sm-6">
+                    <div class="breadcrumb__text">
+                        <h2>Shopping cart</h2>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6 col-sm-6">
+                    <div class="breadcrumb__links" style="text-align: right;">
+                        <%if(shop){%>
+                        <a href="/">Home</a>
+                        <a href="/shop">shop</a>
+                        <%}else{%>
+                            <a href="/">Home</a>
+                            <%}%>
+                        <span>Shopping cart</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Breadcrumb End -->
+
+    <!-- Shopping Cart Section Begin -->
+    <section class="shopping-cart spad">
+        <div class="container">
+            <div class="row">
+                <% if (empty) { %>
+                    <div class="col-lg-12">
+                        <h2>Your cart is currently empty.</h2>
+                        <a href="/shop" class="primary-btn">Go to Shop</a>
+                    </div>
+                <% } else { %>
+                <div class="col-lg-8">
+                    <div class="shopping__cart__table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th style="padding-right: 30px;">Weight</th>
+                                    <th>Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% cart.items.forEach(item => { %>
+                                <tr>
+                                    <td class="product__cart__item">
+                                        <div class="product__cart__item__pic">
+                                                <img style="width: 100px;" src="<%= item.productId.images[0].url %>" alt="<%= item.productId.name %>" >
+                                        </div>
+                                        <div class="product__cart__item__text">
+                                            <h6><a class="pname" href="/products/<%= item.productId._id %>"><%= item.productId.name %></a></h6>
+                                            <h5>Rs <%= item.price.toFixed(2) %></h5>
+                                        </div>
+                                    </td>
+                                    <td class="quantity__item">
+                                        <div class="quantity">
+                                            <div class="pro-qty">
+                                                <input type="text" id="qtyVal" value="<%= item.quantity %>" data-product-id="<%= item.productId._id %>" 
+                                                 data-max="<%=item.productId.quantity%>"  data-item-weight="<%= item.weight %>" class="cart-quantity-input" >
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="cart__weight" style="padding-left:15px ;" >
+                                        <%= item.weight %> kg
+                                    </td>
+                                    <td class="cart__price" >                                            
+                                        Rs <%= item.totalPrice.toFixed(2) %>
+                                    </td>
+                                    <td class="cart__close">
+                                        <span class="icon_close" data-product-id="<%= item.productId._id %>"></span>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="continue__btn">
+                                <a href="/shop">Continue Shopping</a>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="continue__btn update__btn">
+                                <a href="" id="update-cart-btn"><i class="fa fa-spinner"></i> Update Cart</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="cart__discount">
+                        <h6>Discount codes</h6>
+                        <form action="#">
+                            <input type="text" placeholder="Coupon code">
+                            <button type="submit">Apply</button>
+                        </form>
+                    </div>
+                    <div class="cart__total">
+                        <h6>Cart total</h6>
+                        <ul>
+                            <li>Subtotal <span>Rs <%= cart.totalCartPrice.toFixed(2) %></span></li>
+                            <li>Total <span>Rs <%= cart.totalCartPrice.toFixed(2) %></span></li>
+                        </ul>
+                        <a href="#" class="primary-btn">Proceed to checkout</a>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </section>
+    <!-- Shopping Cart Section End -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Update cart quantities and weights with AJAX
+        document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('update-cart-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            const items = [];
+            document.querySelectorAll('.cart-quantity-input').forEach(input => {
+                const productId = input.getAttribute('data-product-id');
+                const weight = input.getAttribute('data-item-weight');
+                const quantity = input.value;
+    
+                items.push({ productId, quantity, weight });
+            });
+
+            fetch('/cart/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ items })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Cart updated',
+                        text: data.message
+                    }).then(() => {
+                        window.location.href = '/cart';  // Redirect to login page
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Could not update cart. Please try again.'
+                });
+            });
+        });
+    
+        // Delete product from cart
+        document.querySelectorAll('.cart__close .icon_close').forEach(icon => {
+            icon.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+    
+                fetch(`/cart/delete/${productId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Product removed',
+                            text: data.message
+                        }).then(() => {
+                            window.location.href = '/cart';  // Redirect to login page
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Could not remove product. Please try again.'
+                    });
+                });
+            });
+        });
+    });
+    </script>
+    
+    <%- include('../partials/user/footer.ejs') %>

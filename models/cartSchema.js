@@ -1,3 +1,4 @@
+const { type } = require('jquery');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
@@ -25,6 +26,10 @@ const cartSchema = new Schema(
         price: {
           type: Number,
           required: true,
+        },
+        weight: {
+          type: Number,
+          required:true,
         },
         totalPrice: {
           type: Number,

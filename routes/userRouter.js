@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controller/userController');
+const cartController = require('../controller/cartController');
+const profileController = require('../controller/profileController');
 const passport = require('passport');
 const { userAuth } = require('../middlewares/auth');
 
@@ -19,6 +21,12 @@ router.post('/signin', userController.signin);
 router.get('/signup', userController.loadSignup);
 router.post('/verify-otp', userController.verifyOtp);
 router.post('/signup', userController.signup);
+router.get('/verifyForgotPassword', userController.forgotOtp);
+router.post('/forgotPassword', userController.forgotPassword);
+router.get('/forgotPassword', userController.getForgotPassword);
+router.post('/resetPassword', userController.resetPassword);
+
+
 
 router.get(
   '/auth/google',
@@ -33,10 +41,6 @@ router.get(
   }
 );
 
-router.get('/profile', userAuth, (req, res) => {
-  res.send('User profile route');
-});
-
 router.get('/logout', userController.logout);
 
 router.get('/pageError', userController.pagenotfound);
@@ -44,4 +48,14 @@ router.get('/pageError', userController.pagenotfound);
 router.get('/products/:id', userAuth, userController.viewProduct);
 
 router.get('/shop', userAuth, userController.getShop);
+
+router.get('/cart', userController.getCart);
+
+router.post('/cart', cartController.cart);
+router.post('/cart/update', cartController.updateCart);
+router.delete('/cart/delete/:id', cartController.deleteCart);
+
+router.get('/profile', profileController.getProfile);
+
+
 module.exports = router;
