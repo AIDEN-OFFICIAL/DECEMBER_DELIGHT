@@ -90,7 +90,9 @@ document.getElementById('orgcart').addEventListener('click', function (event) {
         return response.json().then(error => { throw error; });
     }
     return response.json();
-})
+}).then(response =>{ if(response.ok){
+    window.location.href ='/cart'
+}})
 .catch((error) => {
     if (error.error === 'Login required to access the Cart.') {
         // Login required error handling with SweetAlert
@@ -108,11 +110,7 @@ document.getElementById('orgcart').addEventListener('click', function (event) {
                 }
             });
     } else {
-        Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'An error occurred while adding the product to the cart.'
-        });
+window.location.href ='/cart'
     }
 });
 
@@ -130,4 +128,4 @@ document.getElementById('orgcart').addEventListener('click', function (event) {
 <script src="/js/main.js"></script>
 </body>
 
-</html>~
+</html>

@@ -10,6 +10,11 @@ const orderSchema = new Schema(
       default: uuidv4,
       unique: true,
     },
+    userId: { 
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
     orderItems: [
       {
         productId: {
@@ -25,6 +30,10 @@ const orderSchema = new Schema(
         },
         price: {
           type: Number,
+          required: true,
+        },
+        weight: {
+          type: Number, 
           required: true,
         },
         itemTotalPrice: {
@@ -55,6 +64,7 @@ const orderSchema = new Schema(
       required: true,
       enum: [
         'Pending',
+        'Order Placed',
         'Processing',
         'Shipped',
         'Delivered',
@@ -62,7 +72,7 @@ const orderSchema = new Schema(
         'Return Request',
         'Returned',
       ],
-      default: 'Pending',
+      default: 'Order Placed',
     },
     couponApplied: {
       type: Boolean,
@@ -72,20 +82,25 @@ const orderSchema = new Schema(
       type: Date,
       default: Date.now,
     },
+    orderNotes: {
+      type: String,
+      default: '',
+    },
+    paymentMethod: {
+      type: String,
+      required: true,
+      enum: ['COD', 'Razorpay','Wallet'], // Extend as needed
+      default: 'COD',
+    },
+    paymentStatus: {
+      type: String,
+      required: true,
+      enum: ['Pending', 'Paid', 'Failed'],
+      default: 'Pending',
+    },
   },
   { timestamps: true }
 );
-
-orderSchema.pre('save', function (next) {
-  let total = 0;
-  this.orderItems.forEach((orderItem) => {
-    orderItem.itemTotalPrice = orderItem.quantity * orderItem.price;
-    total += orderItem.itemTotalPrice;
-  });
-  this.totalOrderPrice = total;
-  this.finalAmount = total - this.discount;
-  next();
-});
 
 const Order = mongoose.model('Order', orderSchema);
 module.exports = Order;

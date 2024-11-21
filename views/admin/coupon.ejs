@@ -1,0 +1,249 @@
+<%- include("../../views/partials/admin/header") %>
+<head>
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"
+  /> 
+  <link rel="stylesheet" href="/css/coupon.css"/>
+</head>
+<body>
+  <section class="content-main">
+    <div class="content-header">
+      <h2 class="content-title card-title">Coupons</h2>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3">
+            <form
+              method="post"
+              action="/admin/addCoupon"
+              onsubmit="return handleFormSubmit(event)"
+            >
+              <div class="mb-4">
+                <label for="coupon_name" class="form-label">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Enter coupon name"
+                  class="form-control"
+                  id="coupon_name"
+                />
+                <div id="name-error" class="error-message"></div>
+              </div>
+              <div class="mb-4">
+                <label for="coupon_description" class="form-label">Description</label>
+                <textarea
+                  placeholder="Enter coupon description"
+                  name="description"
+                  class="form-control"
+                  id="coupon_description"
+                ></textarea>
+                <div id="description-error" class="error-message"></div>
+              </div>
+              <div class="mb-4">
+                <label for="offerPrice" class="form-label">Offer Price</label>
+                <input
+                  type="number"
+                  name="offerPrice"
+                  placeholder="Enter offer price"
+                  class="form-control"
+                  id="offerPrice"
+                />
+                <div id="offerPrice-error" class="error-message"></div>
+              </div>
+              <div class="mb-4">
+                <label for="minimumPrice" class="form-label">Minimum Price</label>
+                <input
+                  type="number"
+                  name="minimumPrice"
+                  placeholder="Enter minimum price"
+                  class="form-control"
+                  id="minimumPrice"
+                />
+                <div id="minimumPrice" class="error-message"></div>
+              </div>
+              <div class="error-message"></div> 
+              <div class="mb-4">
+                <label for="expiredOn" class="form-label">Expiry Date</label>
+                <input
+                  type="date"
+                  name="expiredOn"
+                  class="form-control"
+                  id="expiredOn"
+                />
+                <div id="expiredOn-error" class="error-message"></div>
+              </div>
+              <div class="d-grid">
+                <button class="btn btn-primary" type="submit">Create Coupon</button>
+              </div>
+            </form>
+          </div>
+          <div class="col-md-8 ml-10">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Offer Price</th>
+                    <th>Minimum Price</th>
+                    <th>Expires On</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% coupons.forEach((coupon) => { %>
+                    <tr>
+                      <td><%= coupon.name %></td>
+                      <td><%= coupon.description %></td>
+                      <td>₹<%= coupon.offerPrice %></td>
+                      <td>₹<%= coupon.minimumPrice %></td>
+                      <td><%= new Date(coupon.expiredOn).toLocaleDateString() %></td>
+                      <td>
+                        <% if (new Date() < new Date(coupon.expiredOn)) { %>
+                          <span class="badge rounded-pill alert-success">Active</span>
+                        <% } else { %>
+                          <span class="badge rounded-pill alert-danger">Expired</span>
+                        <% } %>
+                      </td>
+                      <td>
+                        <a href="/admin/editCoupon/<%= coupon._id %>" class="btn btn-info text-white">Edit</a>
+                    </td>
+                    <td>
+                        <button class="btn btn-danger text-white" onclick="deleteCoupon('<%= coupon._id %>')">
+                         Delete
+                        </button>                    
+                    </td>
+
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script>
+    function handleFormSubmit(event) {
+      event.preventDefault();
+  
+      const name = document.getElementById('coupon_name').value.trim();
+      const description = document.getElementById('coupon_description').value.trim();
+      const offerPrice = document.getElementById('offerPrice').value.trim();
+      const minimumPrice = document.getElementById('minimumPrice').value.trim();
+      const expiredOn = document.getElementById('expiredOn').value.trim();
+  
+      let isValid = true;
+  
+      if (!name) {
+        document.getElementById('name-error').textContent = 'Coupon name is required.';
+        isValid = false;
+      } else {
+        document.getElementById('name-error').textContent = '';
+      }
+  
+      if (!description) {
+        document.getElementById('description-error').textContent = 'Description is required.';
+        isValid = false;
+      } else {
+        document.getElementById('description-error').textContent = '';
+      }
+  
+      if (!offerPrice || isNaN(offerPrice) || offerPrice <= 0) {
+        document.getElementById('offerPrice').nextElementSibling.textContent =
+          'Valid offer price is required.';
+        isValid = false;
+      } else {
+        document.getElementById('offerPrice').nextElementSibling.textContent = '';
+      }
+  
+      if (!minimumPrice || isNaN(minimumPrice) || minimumPrice <= 0) {
+        document.getElementById('minimumPrice').nextElementSibling.textContent =
+          'Valid minimum price is required.';
+        isValid = false;
+      } else {
+        document.getElementById('minimumPrice').nextElementSibling.textContent = '';
+      }
+  
+      if (!expiredOn) {
+        document.getElementById('expiredOn').nextElementSibling.textContent = 'Expiry date is required.';
+        isValid = false;
+      } else {
+        document.getElementById('expiredOn').nextElementSibling.textContent = '';
+      }
+  
+      if (isValid) {
+        const formData = {
+          name,
+          description,
+          offerPrice,
+          minimumPrice,
+          expiredOn,
+        };
+  
+        fetch('/admin/addCoupon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              Swal.fire('Success', 'Coupon added successfully!', 'success').then(() =>
+                window.location.reload()
+              );
+            } else {
+              Swal.fire('Error', data.message, 'error');
+            }
+          })
+          .catch(() => {
+            Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+          });
+      }
+    }
+    function deleteCoupon(couponId) {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'You won’t be able to undo this action!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, delete it!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      fetch(`/admin/deleteCoupon/${couponId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            Swal.fire('Deleted!', data.message, 'success').then(() => {
+              location.reload();
+            });
+          } else if (data.error) {
+            Swal.fire('Error!', data.error, 'error');
+          }
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+          Swal.fire('Error!', 'Failed to delete the coupon. Please try again.', 'error');
+        });
+    }
+  });
+}
+
+  </script>
+
+  
+</body>

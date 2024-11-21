@@ -217,11 +217,11 @@
         console.log(maxQty);
         
         if ($button.hasClass('inc')) {
-            if (oldValue < maxQty) {
+            if (oldValue < maxQty && oldValue < 5) {
                 var newVal = parseFloat(oldValue) + 1;
             }
             else {
-                newVal = maxQty;
+                newVal = maxQty > 5 ? 5:maxQty;
             }
         } else {
             // Don't allow decrementing below zero

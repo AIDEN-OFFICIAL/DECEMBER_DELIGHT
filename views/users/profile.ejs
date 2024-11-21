@@ -1,97 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile</title>
-<link rel="stylesheet" href="/css/profileDashboard.css">
-</head>
-<body>
-    <div class="container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <h2>User Dashboard</h2>
-            <a href="#profile" class="active">Profile Details</a>
-            <a href="#orders">Order History</a>
-            <a href="#addresses">Manage Addresses</a>
-            <a href="#payment-methods">Payment Methods</a>
-            <a href="#notifications">Notifications</a>
-            <a href="#settings">Account Settings</a>
-        </aside>
-
-        <!-- Main Content -->
-        <div class="content">
-            <!-- Profile Header -->
-            <div class="profile-header">
-                <img src="profile-pic.jpg" alt="User Profile Picture">
-                <div><h1><%= user.name%></h1>
-                </div>
-            </div>
-
+<%-include('../partials/user/profileSidebar.ejs')%>
             <!-- Profile Details -->
             <div id="profile" class="section">
                 <h3>Profile Details</h3>
+                <form action="/profile/updateProfile" method="POST">
                 <div class="form-group">
                     <label for="name">Full Name</label>
-                    <input type="text" id="name" value="<%= user.name%>">
+                    <input type="text" id="name" name="name" value="<%= user.name%>">
                 </div>
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" value="<%= user.email%>">
+                    <input type="email" id="email" name="email" value="<%= user.email%>" disabled>
                 </div>
                 <div class="form-group">
                     <label for="phone">Phone Number</label>
-                    <input type="tel" id="phone" value="<%= user.phone%>" placeholder="Enter 10 digit phone number" >
+                    <input type="tel" id="phone" name="phone" value="<%= user.phone%>" placeholder="Enter 10 digit phone number" >
                 </div>
-                <button>Save Changes</button>
-            </div>
-
-            <!-- Order History -->
-            <div id="orders" class="section">
-                <h3>Order History</h3>
-                <p>No orders found. Start shopping!</p>
-            </div>
-
-            <!-- Manage Addresses -->
-            <div id="addresses" class="section">
-                <h3>Manage Addresses</h3>
-                <button>Add New Address</button>
-                <div class="address-list">
-                    <div class="address-item">
-                        <p>123 Main St, Springfield, IL</p>
-                        <div class="address-actions">
-                            <button>Edit</button>
-                            <button>Delete</button>
-                        </div>
-                    </div>
-                    <div class="address-item">
-                        <p>456 Elm St, Shelbyville, IL</p>
-                        <div class="address-actions">
-                            <button>Edit</button>
-                            <button>Delete</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Payment Methods -->
-            <div id="payment-methods" class="section">
-                <h3>Payment Methods</h3>
-                <p>No payment methods saved. Add a new one!</p>
-            </div>
-
-            <!-- Notifications -->
-            <div id="notifications" class="section">
-                <h3>Notifications</h3>
-                <p>Manage your notification preferences.</p>
-            </div>
-
-            <!-- Account Settings -->
-            <div id="settings" class="section">
-                <h3>Account Settings</h3>
-                <p>Update your account security and privacy options here.</p>
+                <button><a href="/forgotPassword" style="text-decoration: none;color: aliceblue;">Change Password</a></button>
+                <br>
+                <br>
+                <button type="submit">Save Changes</button>
+            </form>
             </div>
         </div>
-    </div>
 </body>
 </html>

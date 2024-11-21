@@ -1,0 +1,111 @@
+/* styles/profileDashboard.css */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    display: flex;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #333;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding-top: 0px;
+    height: 100vh;
+    position:fixed;
+}
+
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 22px;
+}
+
+.sidebar a {
+    padding: 15px;
+    color: #ddd;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.sidebar a:hover, .sidebar a.active {
+    background-color: #555;
+    color: #fff;
+}
+
+.content {
+    margin-left: 250px; /* Add margin to the left to avoid overlap with the sidebar */
+    padding: 20px;
+    padding-top: 0px;
+    flex: 1; /* Allow content to take the remaining space */
+    padding-left: 15px;
+}
+
+h1 {
+    margin-bottom: 20px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #218838;
+}
+
+.address-list {
+    margin-top: 20px;
+}
+
+.address-item {
+    background: #fff;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.address-actions {
+    margin-top: 10px;
+    display: flex;
+}
+
+.address-actions button {
+    background-color: #dc3545;
+    margin-right: 10px;
+}
+
+.address-actions button:hover {
+    background-color: #c82333;
+}

@@ -59,6 +59,7 @@ const pageError = async (req, res) => {
   res.status(404).render('pageError', { title: 'Page Not Found' });
 };
 
+
 module.exports = {
   loadLogin,
   login,

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Addresses</title>
+    <link rel="stylesheet" href="/css/profileAddressManage.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>User Dashboard</h2>
+                <a href="/">Home</a>
+                <a href="/profile">Profile Details</a>
+                <a href="/profile/manageAddress" class="active">Manage Addresses</a>
+                <a href="/profile/orderHistory">Order History</a>
+                <a href="#payment-methods">Payment Methods</a>
+                <a href="#notifications">Notifications</a>
+                <a href="#settings">Account Settings</a>
+        </aside>
+        <div class="content">
+            <h1>Manage Addresses</h1>
+            <form id="addressForm">
+                <input type="hidden" id="addressId" name="addressId">
+                <div class="form-group">
+                    <label for="street">Street</label>
+                    <input type="text" id="street" name="street" required>
+                </div>
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <input type="text" id="city" name="city" required>
+                </div>
+                <div class="form-group">
+                    <label for="state">State</label>
+                    <input type="text" id="state" name="state" required>
+                </div>
+                <div class="form-group">
+                    <label for="pinCode">Postal Code</label>
+                    <input type="text" id="pinCode" name="pinCode" required>
+                </div>
+                <div class="form-group">
+                    <label for="country">Country</label>
+                    <input type="text" id="country" name="country" required>
+                </div>
+                <div class="form-group">
+                    <label for="phoneNumber">Phone Number</label>
+                    <input type="text" id="phoneNumber" name="phoneNumber" placeholder="10 Digits required" required>
+                </div>
+                <button type="submit" id="addAddressBtn">Add Address</button>
+                <button type="button" id="saveChangesBtn" onclick="saveChanges()" hidden>Save Changes</button>
+            </form>
+
+            <h3>Your Addresses</h3>
+            <div class="address-list">
+                <% addresses.forEach(addrItem => { %>
+                <% addrItem.address.forEach(addr => { %>
+                    <div class="address-item">
+                        <p>
+                            <strong>Street:</strong> <%= addr.street %>,<br> 
+                            <strong>City:</strong> <%= addr.city %>, <br>
+                            <strong>State:</strong> <%= addr.state %>, <br>
+                            <strong>Country:</strong> <%= addr.country %>, <br>
+                            <strong>Postal Code:</strong> <%= addr.pinCode %>, <br>
+                            <strong>Phone:</strong> <%= addr.phoneNumber %><br>
+                        </p>
+                        <div class="address-actions">
+                            <button onclick="deleteAddress('<%= addr._id %>', this)" class="deletebutton">Delete</button>
+                            <button onclick="editAddress('<%= addr._id %>',this)" class="editbutton">Edit</button>
+                            <label>
+                                Primary
+                                <input type="checkbox" <% if (addr.isDefault) { %> checked <% } %> onchange="updatePrimary('<%= addr._id %>', this)">
+                            </label>                        
+                        </div>
+                    </div>
+                <% }); %>
+                <% }); %>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+  async function saveChanges() {
+    const addressId = document.getElementById('addressId').value;
+    const formData = {
+        street: document.getElementById('street').value,
+        city: document.getElementById('city').value,
+        state: document.getElementById('state').value,
+        pinCode: document.getElementById('pinCode').value,
+        country: document.getElementById('country').value,
+        phoneNumber: document.getElementById('phoneNumber').value,
+    };
+
+    const response = await fetch(`/profile/editAddress/${addressId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+    });
+
+    const result = await response.json();
+    handleResponse(response, result, "Address Updated");
+}
+
+// Reset form and toggle buttons after response
+function handleResponse(response, result, successMessage) {
+    if (response.ok) {
+        Swal.fire({ icon: 'success', title: successMessage, text: result.message });
+        setTimeout(() => { window.location.reload(); }, 2000);
+    } else {
+        Swal.fire({ icon: 'error', title: 'Error', text: result.message });
+    }
+}
+document.getElementById('addressForm').addEventListener('submit',addAddress);
+async function addAddress(event) {
+    const addressId = document.getElementById('addressId').value;
+    event.preventDefault();
+    const formData = {
+        street: document.getElementById('street').value,
+        city: document.getElementById('city').value,
+        state: document.getElementById('state').value,
+        pinCode: document.getElementById('pinCode').value,
+        country: document.getElementById('country').value,
+        phoneNumber: document.getElementById('phoneNumber').value
+    };
+    if (addressId) {
+        saveChanges();
+    } else {
+    try {
+        const response = await fetch('/profile/manageAddress', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            // Success message using SweetAlert
+            Swal.fire({
+                icon: 'success',
+                title: 'Address Added',
+                text: result.message,
+                confirmButtonText: 'OK',
+            })
+            .then(
+                setTimeout(() => {window.location.reload()}, 2000)
+            );
+        } else {
+            // Error message if address already exists
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: result.message || 'An error occurred. Please try again.',
+                confirmButtonText: 'OK',
+            });
+        }
+    } catch (error) {
+        // Error handling for unexpected issues
+        Swal.fire({
+            icon: 'error',
+            title: 'Submission Failed',
+            text: 'Unable to add address. Please try again later.',
+            confirmButtonText: 'OK',
+        });
+    }
+  
+};
+}
+// Function to update the primary address
+async function updatePrimary(addressId, checkbox) {
+    try {
+        // Prepare the request to set the primary address
+        const response = await fetch('/profile/updatePrimaryAddress', {
+            method: 'POST',
+            body: JSON.stringify({
+                addressId: addressId,
+                isDefault: checkbox.checked,  // true if checked, false if unchecked
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            // Success, update the UI accordingly
+            if (checkbox.checked) {
+                // Uncheck all other checkboxes
+                document.querySelectorAll('input[type="checkbox"]').forEach(input => {
+                    if (input !== checkbox) {
+                        input.checked = false;
+                    }
+                });
+            }
+            Swal.fire({
+                icon: 'success',
+                title: 'Primary Address',
+                text: result.message,
+                confirmButtonText: 'OK',
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: result.message || 'An error occurred. Please try again.',
+                confirmButtonText: 'OK',
+            });        }
+    } catch (error) {
+        alert('Unable to update primary address. Please try again.');
+    }
+}
+async function deleteAddress(addressId, button) {
+  try {
+    const response = await fetch(`/profile/manageAddress/${addressId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      // Success, remove the address item from the DOM
+      button.closest('.address-item').remove();
+      Swal.fire({
+        icon: 'success',
+        title: 'Deleted',
+        text: result.message,
+        confirmButtonText: 'OK'
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: result.message || 'An error occurred. Please try again.',
+        confirmButtonText: 'OK'
+      });
+    }
+  } catch (error) {
+    console.error('Unable to delete address:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Deletion Failed',
+      text: 'Unable to delete address. Please try again later.',
+      confirmButtonText: 'OK'
+    });
+  }
+}
+async function editAddress(addressId, button) {
+  try {
+    const response = await fetch(`/profile/editAddress/${addressId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+
+      // Populate the form fields with the fetched address data
+      document.getElementById('street').value = result.address.street;
+      document.getElementById('city').value = result.address.city;
+      document.getElementById('state').value = result.address.state;
+      document.getElementById('pinCode').value = result.address.pinCode;
+      document.getElementById('country').value = result.address.country;
+      document.getElementById('phoneNumber').value = result.address.phoneNumber;
+
+      document.getElementById('addressId').value = addressId;
+
+      document.getElementById('addAddressBtn').hidden = true;
+      document.getElementById('saveChangesBtn').hidden = false;
+
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to retrieve address details.',
+        confirmButtonText: 'OK'
+      });
+    }
+  } catch (error) {
+    console.error('Unable to edit address:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Editing Failed',
+      text: 'Unable to edit address. Please try again later.',
+      confirmButtonText: 'OK'
+    });
+  }
+}
+
+    </script>
+</body>
+</html>

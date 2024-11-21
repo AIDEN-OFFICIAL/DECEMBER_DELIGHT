@@ -1,0 +1,96 @@
+<%-include('../partials/user/header.ejs')%>
+<div class="wallet-section spad">
+    <div class="container">
+      <div class="section-title">
+        <h2>My Wallet</h2>
+      </div>
+  
+      <!-- Wallet Balance -->
+      <div class="wallet-balance">
+        <h3>Current Balance</h3>
+        <div class="balance-display">₹<span id="balance-amount"><%= wallet ? wallet.balance : 0 %></span></div>
+      </div>
+  
+      <!-- Add Money Button -->
+      <button class="primary-btn add-money-btn" id="add-money">Add Money</button>
+  
+      <!-- Wallet History Table -->
+      <div class="wallet-history">
+        <h3>Transaction History</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Transaction ID</th>
+              <th>Description</th>
+              <th>Date & Time</th>
+              <th>Amount</th>
+
+            </tr>
+          </thead>
+          <tbody>
+            <% if (wallet && wallet.transactions.length > 0) { %>
+              <% wallet.transactions.forEach((transaction) => { %>
+                <tr>
+                  <td><%= transaction.transactionId %></td>
+                  <td><%= transaction.description %></td>
+                  <td><%= transaction.date.toLocaleString() %></td>
+                  <td>₹<%= transaction.amount %></td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="4" style="text-align: center;">No transactions yet.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.getElementById("add-money").addEventListener("click", () => {
+  Swal.fire({
+    title: "Add Money",
+    input: "number",
+    inputAttributes: {
+      min: 5,
+      step: 1,
+    },
+    inputPlaceholder: "Enter amount",
+    showCancelButton: true,
+    confirmButtonText: "Add",
+    preConfirm: (amount) => {
+      if (!amount || amount <= 0) {
+        Swal.showValidationMessage("Please enter a valid amount.");
+      }
+      return amount;
+    },
+  }).then((result) => {
+    if (result.isConfirmed) {
+      fetch("/wallet/addMoney", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ amount: parseInt(result.value) }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            document.getElementById("balance-amount").textContent = data.balance;
+            Swal.fire("Success!", "Money added successfully.", "success");
+          } else {
+            Swal.fire("Error", "Failed to add money.", "error");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          Swal.fire("Error", "Something went wrong.", "error");
+        });
+    }
+  });
+});
+
+  </script>
+  <%-include('../partials/user/footer.ejs')%>
+ 

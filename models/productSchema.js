@@ -13,7 +13,7 @@ const productSchema = new Schema(
     description: {
       type: String,
       required: [true, 'Product description is required'],
-      trim: true,
+      trim: true,   
     },
     regularPrice: {
       type: Number,
@@ -54,8 +54,8 @@ const productSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ['available', 'not available'],
-      default: 'available',
+      enum: ['In stock', 'Out of stock'],
+      default: 'In stock',
     },
     quantity: {
       type: Number,
@@ -74,6 +74,14 @@ const productSchema = new Schema(
   { timestamps: true }
 );
 
+productSchema.pre('save', function (next) {
+  if (this.quantity === 0) {
+    this.status = 'Out of stock';
+  } else {
+    this.status = 'In stock';
+  }
+  next();
+});
 // Export Product Model
 const Product = mongoose.model('Product', productSchema);
 module.exports = Product;

@@ -20,7 +20,7 @@ const userAuth = (req, res, next) => {
         res.status(500).send('Internal Server Error');
       });
   } else {
-    next();
+    res.redirect('/signin');
   }
 };
 

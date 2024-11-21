@@ -35,6 +35,7 @@ const cartSchema = new Schema(
           type: Number,
           required: true,
         },
+        appliedCoupon: { type:Schema.Types.ObjectId, ref: 'Coupon', default: null },
         addedAt: {
           type: Date,
           default: Date.now,
@@ -56,12 +57,14 @@ const cartSchema = new Schema(
 );
 
 cartSchema.pre('save', function (next) {
-  let total = 0;
-  this.items.forEach((item) => {
-    item.totalPrice = item.quantity * item.price;
-    total += item.totalPrice; // Sum the total price for each item in the cart
-  });
-  this.totalCartPrice = total;
+  if (!this.isModified('totalCartPrice')) {
+    let total = 0;
+    this.items.forEach((item) => {
+      item.totalPrice = item.quantity * item.price;
+      total += item.totalPrice; // Sum the total price for each item in the cart
+    });
+    this.totalCartPrice = total;
+  }
   next();
 });
 

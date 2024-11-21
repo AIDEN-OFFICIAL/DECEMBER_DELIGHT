@@ -47,7 +47,11 @@
             </div>
             <div class="offcanvas__cart__item">
                 <a href="#"><img src="/images/icon/cart.png" alt=""> <span>0</span></a>
-                <div class="cart__price">Cart: <span>$0.00</span></div>
+                <%if (user){%>
+                    <div class="cart__price">Cart: <span>Rs <%= cartAmount ? cartAmount.totalCartPrice : '0.00' %></span></div>
+                    <%}else{%>
+                <div class="cart__price">Cart: <span>Rs 0.00 </span></div>
+                <%}%>
             </div>
         </div>
         <div class="offcanvas__logo">
@@ -59,7 +63,8 @@
                 <h6>
                     <a href="/profile" class="user-name"><b><%= user.name %></b></a> | 
                     <a href="/logout" class="logout-link"><b>Logout</b></a>
-                </h6>                                <% } else { %>
+                </h6>                                
+            <% } else { %>
             <ul>
                 <li><a href="/signin"><b>Login</b></a> <span class="arrow_carrot-down"></span>
                     <ul>
@@ -97,16 +102,22 @@
                                 <% } %> 
                             </div>
                             <div class="header__logo">
-                                <a href="/cart" ><img src="/images/logo.png" alt="" ></a>
+                                <a href="/" ><img src="/images/logo.png" alt="" ></a>
                             </div>
                             <div class="header__top__right">
                                 <div class="header__top__right__links">
                                     <a href="/profile" class="profile"><img style="width: 37px;" src="/images/profile_icon.jpg" alt=""></a>
-                                    <a href="#"><img src="/images/icon/heart.png" alt=""></a>
+                                    <a href="/wishlist"><img src="/images/icon/heart.png" alt=""></a>
                                 </div>
                                 <div class="header__top__right__cart">
                                     <a href="" id="orgcart"><img src="/images/icon/cart.png" alt=""> <span>0</span></a>
-                                    <div class="cart__price">Cart: <span>$0.00</span></div>
+                                    <%if (user){%>
+                                        <div class="cart__price">Cart: <span>Rs <%= cartAmount ? cartAmount.totalCartPrice : '0.00' %></span></div>
+                                        <%}else{%>
+                                    <div class="cart__price">Cart: <span>Rs 0.00</span></div>
+                                    <%}%>
+                                    <a href="/wallet"><img src="/images/wallet1.png" alt="wallet" style="width: 40px;padding-left: 10px;"></a>
+
                                 </div>
                             </div>
                         </div>
@@ -121,20 +132,20 @@
                     <nav class="header__menu mobile-menu">
                         <ul>
                             <li class="active"><a href="/">Home</a></li>
-                            <li><a href="./about.html">About</a></li>
+                            <li><a href="/about.html">About</a></li>
                             <li><a href="/shop">Shop</a></li>
                             <li><a href="#">Pages</a>
                                 <ul class="dropdown">
-                                    <li><a href="./shop">Shop Details</a></li>
+                                    <li><a href="/shop">Shop Details</a></li>
                                     <li><a href="/cart">Shoping Cart</a></li>
-                                    <li><a href="./checkout.html">Check Out</a></li>
-                                    <li><a href="./wishlist.html">Wishlist</a></li>
-                                    <li><a href="./Class.html">Class</a></li>
-                                    <li><a href="./blog-details.html">Blog Details</a></li>
+                                    <li><a href="/checkout">Check Out</a></li>
+                                    <li><a href="/wishlist">Wishlist</a></li>
+                                    <li><a href="/Class.html">Class</a></li>
+                                    <li><a href="/blog-details.html">Blog Details</a></li>
                                 </ul>
                             </li>
-                            <li><a href="./blog.html">Blog</a></li>
-                            <li><a href="./contact.html">Contact</a></li>
+                            <li><a href="/blog.html">Blog</a></li>
+                            <li><a href="/contact.html">Contact</a></li>
                         </ul>
                     </nav>
                 </div>

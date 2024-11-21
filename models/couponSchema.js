@@ -7,6 +7,7 @@ const couponSchema = new Schema({
     required: true,
     unique: true,
   },
+  description: { type: String, required: true }, 
   createdOn: {
     type: Date,
     required: true,
@@ -24,10 +25,14 @@ const couponSchema = new Schema({
     type: Number,
     required: true,
   },
+  totalUsageLimit: {
+    type: Number,
+    default: null, // No limit by default
+  },  
   usesPerUser: {
     type: Number,
     default: null,
-  },
+  },  
   isList: {
     type: Boolean,
     default: true,
@@ -38,5 +43,5 @@ const couponSchema = new Schema({
   },
 });
 
-const Coupon = mongoose.model('Coupon', couponSchema);
-module.exports = Coupon;
+module.exports = mongoose.model('Coupon', couponSchema);
+

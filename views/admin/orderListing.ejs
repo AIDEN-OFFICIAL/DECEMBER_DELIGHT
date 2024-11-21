@@ -1,0 +1,230 @@
+<%-include('../partials/admin/header.ejs')%>
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    display: flex;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #333;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding-top: 0px;
+    height: 100vh;
+    position: fixed;
+}
+
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 22px;
+}
+
+.sidebar a {
+    padding: 15px;
+    color: #ddd;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.sidebar a:hover, .sidebar a.active {
+    background-color: #555;
+    color: #fff;
+}
+
+.content {
+    padding: 20px;
+    padding-top: 0px;
+    flex: 1; /* Allow content to take the remaining space */
+    padding-left: 15px;
+}
+
+h1 {
+    margin-bottom: 20px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #f2f2f2;
+    color: #333;
+}
+
+tr:hover {
+    background-color: #bebebeb4;
+}
+
+button {
+    background-color: #cb3a35;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #d71b14;
+}
+
+.action-link {
+    margin-right: 10px;
+    text-decoration: none;
+    color: #007bff;
+}
+.viewd{
+    padding-right:10px ;text-decoration: none; color: orange;
+}
+
+.viewd:hover {
+    text-decoration: underline;
+}
+.back-button{
+    text-decoration: none; color: white; padding: 10px 15px; background-color: orange; border-radius: 10px; margin-bottom: 20px; position: relative;
+}
+
+</style>
+        <div class="content">
+            <h1>Order History</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>User</th>
+                        <th>No.Products</th>
+                        <th>Order Date</th>
+                        <th>Order Price</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% orders.forEach(order => { %>
+                        <tr>
+                            <td>#<%= order.orderId %></td>
+                            <td><%= order.userId ? order.userId.name : 'Unknown User' %></td>
+                            <td style="text-align: center;"><%= order.orderItems.length %></td>
+                            <td><%= order.createdAt.toDateString() %></td>
+                            <td>₹<%= order.finalAmount.toFixed(2) %></td>
+                            <td><%= order.status %></td>
+                            <td>
+                                <a href="/admin/orderList/<%= order._id %>" class="viewd" >View Details</a> 
+                                <% if (order.status !== 'Cancelled' && order.status !== 'Delivered') { %>
+                                    <form action="" method="POST" style="display:inline;">
+                                        <button type="button" onclick="openModal('<%= order._id %>', '<%= order.status %>')">Edit ✏️</button>
+                                    </form>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Function to open the modal and populate it with order data
+        function openModal(orderId, currentStatus) {
+            Swal.fire({
+                title: 'Edit Order Status',
+                html: `
+                    <form id="editStatusForm">
+                        <input type="hidden" id="orderId" value="${orderId}">
+                        <label for="status">Select Status:</label>
+                        <select id="status" class="swal2-input">
+                            <option value="Order Placed" ${currentStatus === 'Order Placed' ? 'selected' : ''}>Order Placed</option>
+                            <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
+                            <option value="Processing" ${currentStatus === 'Processing' ? 'selected' : ''}>Processing</option>
+                            <option value="Shipped" ${currentStatus === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                            <option value="Delivered" ${currentStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                            <option value="Return Request" ${currentStatus === 'Return Request' ? 'selected' : ''}>Return Request</option>
+                            <option value="Returned" ${currentStatus === 'Returned' ? 'selected' : ''}>Returned</option>
+                            <option value="Cancelled" ${currentStatus === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                        </select>
+                    </form>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Update',
+                cancelButtonText: 'Cancel',
+                preConfirm: () => {
+                    const orderId = document.getElementById('orderId').value;
+                    const newStatus = document.getElementById('status').value;
+    
+                    // Validate if status is selected
+                    if (!newStatus) {
+                        Swal.showValidationMessage('Please select a status!');
+                        return false;
+                    }
+    
+                    return { orderId, newStatus };
+                },
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const { orderId, newStatus } = result.value;
+    
+                    // Send the AJAX request to update the status
+                    fetch(`/admin/updateOrderStatus/${orderId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ status: newStatus }),
+                    })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Order Status Updated',
+                                    text: data.message,
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Update Failed',
+                                    text: data.message,
+                                });
+                            }
+                        })
+                        .catch((error) => {
+                            console.error('Error:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'An error occurred while updating the order status.',
+                            });
+                        });
+                }
+            });
+        }
+    </script>
+    
+</body>
+</html>

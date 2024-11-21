@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+<link rel="stylesheet" href="/css/profileDashboard.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2>User Dashboard</h2>
+            <a href="/">Home</a>
+            <a href="/profile" class="active">Profile Details</a>
+            <a href="/profile/manageAddress">Manage Addresses</a>  
+            <a href="/profile/orderHistory">Order History</a>
+            <a href="#payment-methods">Payment Methods</a>
+            <a href="#notifications">Notifications</a>
+            <a href="#settings">Account Settings</a>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Profile Header -->
+            <div class="profile-header ">
+                <img style="width: 35px; height: auto;padding-bottom: 5px;" src="/images/profile2_icon.jpg" alt="">
+                <!-- <img src="profile-pic.jpg" alt="User Profile Picture"> -->
+                <div><h1><%= user.name%></h1>
+                </div>
+            </div>

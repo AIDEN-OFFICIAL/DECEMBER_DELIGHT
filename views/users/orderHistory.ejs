@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order History</title>
+    <link rel="stylesheet" href="/css/orderHistory.css">
+</head>
+
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>User Dashboard</h2>
+            <a href="/">Home</a>
+            <a href="/profile">Profile Details</a>
+            <a href="/profile/manageAddress">Manage Addresses</a>
+            <a href="/profile/orderHistory" class="active">Order History</a>
+            <a href="#payment-methods">Payment Methods</a>
+            <a href="#notifications">Notifications</a>
+            <a href="#settings">Account Settings</a>
+        </aside>
+        <div class="content">
+            <h1>Order History</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>No.Products</th>
+                        <th>Order Date</th>
+                        <th>Order Price</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% orders.forEach(order => { %>
+                        <tr>
+                            <td>#<%= order.orderId %></td>
+                            <td style="text-align: center;"><%= order.orderItems.length %></td>
+                            <td><%= order.createdAt.toDateString() %></td>
+                            <td>₹<%= order.finalAmount.toFixed(2) %></td>
+                            <td><%= order.status %></td>
+                            <td>
+                                <a href="/profile/orderHistory/<%= order._id %>" class="viewd" >View Details</a> 
+                                <% if (order.status !== 'Cancelled' && order.status !== 'Delivered') { %>
+                                        <button type="button" class="cancel-order-btn" data-order-id="<%= order._id %>">Cancel</button>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cancelButtons = document.querySelectorAll('.cancel-order-btn');
+            
+            cancelButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const orderId = button.getAttribute('data-order-id');
+                    
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You won't be able to revert this!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Yes, cancel it!',
+                        cancelButtonText: 'No, keep it'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Submit the form programmatically
+                            fetch(`/profile/orderHistory/${orderId}/cancel`, {
+                                method: 'POST'
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire(
+                                        'Cancelled!',
+                                        'Your order has been cancelled.',
+                                        'success'
+                                    ).then(() => {
+                                        window.location.reload();
+                                    });
+                                } else {
+                                    Swal.fire(
+                                        'Error!',
+                                        data.message || 'Something went wrong.',
+                                        'error'
+                                    );
+                                }
+                            })
+                            .catch(() => {
+                                Swal.fire(
+                                    'Error!',
+                                    'Unable to cancel the order.',
+                                    'error'
+                                );
+                            });
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

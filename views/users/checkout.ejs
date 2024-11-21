@@ -1,0 +1,185 @@
+<%-include('../partials/user/header.ejs')%>
+<style>
+
+</style>    
+<!-- Breadcrumb Begin -->
+    <div class="breadcrumb-option">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 col-md-6 col-sm-6">
+                    <div class="breadcrumb__text">
+                        <h2>Checkout</h2>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6 col-sm-6">
+                    <div class="breadcrumb__links"  style="text-align: right;">
+                        <a href="/">Home</a>
+                        <a href="/cart">Shopping cart</a>
+                        <span>Checkout</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Breadcrumb End -->
+     <%if(!success){%>
+
+    <!-- Checkout Section Begin -->
+    <section class="checkout spad">
+        <div class="container">
+            <div class="checkout__form">
+                <form action="/checkout" method="POST">
+                    <div class="row">
+                        <div class="col-lg-8 col-md-6">
+                            <h6 class="coupon__code"><span class="icon_tag_alt"></span> Have a coupon? <a href="#">Click
+                            here</a> to enter your code</h6>
+                            <h6 class="checkout__title">Billing Details</h6>
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="checkout__input">
+                                        <p>Full Name<span>*</span></p>
+                                        <input type="text" name="name" value="<%=user.name%>"  required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="checkout__input">
+                                <p>Country<span>*</span></p>
+                                <input type="text"  value="<%=defaultAddress.country%>" name="country"  required>
+                            </div>
+                            <div class="checkout__input">
+                                <p>Address<span>*</span></p>
+                                <input type="text" placeholder="Street Address" class="checkout__input__add" name="street" value="<%=defaultAddress.street%>"  required>
+                                <input type="text" placeholder="Apartment, suite, unite ect (optinal)">
+                            </div>
+                            <div class="checkout__input">
+                                <p>Town/City<span>*</span></p>
+                                <input type="text" value="<%=defaultAddress.city%>" name="city"  required>
+                            </div>
+                            <div class="checkout__input">
+                                <p>State<span>*</span></p>
+                                <input type="text" value="<%=defaultAddress.state%>" name="state"  required>
+                            </div>
+                            <div class="checkout__input">
+                                <p>Pincode / ZIP<span>*</span></p>
+                                <input type="text" value="<%=defaultAddress.pinCode%>" name="pinCode"  required>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="checkout__input">
+                                        <p>Phone<span>*</span></p>
+                                        <input type="text" value="<%=user.phone%>" name="phone"  required>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="checkout__input">
+                                        <p>Email<span>*</span></p>
+                                        <input type="email" value="<%=user.email%>" name="email"  required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="checkout__input__checkbox">
+                                <label for="diff-acc">
+                                </label>
+                            </div>
+                            <div class="checkout__input">
+                                <p>Order notes<span>*</span></p>
+                                <input type="text"
+                                placeholder="Notes about your order, e.g. special notes for delivery." name="notes">
+                            </div>
+                        </div>
+                            
+ 
+                        <div class="col-lg-4 col-md-6">
+                            <div class="checkout__order" style="width: 450px;">
+                                <h6 class="order__title">Your order</h6>
+                                <div class="checkout__order__products">Product  <span style="float: none ; margin-left: 130px;" >quantity</span>  <span>Total</span></div>
+                                <ul class="checkout__total__products">
+                                    <% cart.items.forEach((item, index) => { %>
+                                        <li><samp><%=(index+1).toString().padStart(2, '0')%>.</samp> <%=item.productId.name%>   <span style="float: none ; margin-left: 90px;" ><%=item.quantity%><span> <span>Rs <%=item.productId.salePrice%></span></li>
+                                        <% }); %>
+                                </ul>
+                                <ul class="checkout__total__all">
+                                    <li>Subtotal <span><%=cart.totalCartPrice%></span></li>
+                                    <li>Total <span><%=cart.totalCartPrice%></span></li>
+                                </ul>
+                                <% if (error) { %>
+                                    <div class="alert alert-danger">
+                                        <%= error %>
+                                    </div>
+                                <% } %>
+                                <p>Thank you for shopping from <br><b>DECEMBER DELIGHT</b>.<br>Looking forward to serving you again soon.</p>
+                                <div class="checkout__input__checkbox">
+                                    <label for="payment">
+                                       COD
+                                        <input type="checkbox" id="payment">
+                                        <span class="checkmark"></span>
+                                    </label>
+                                </div>
+                                <div class="checkout__input__checkbox">
+                                    <label for="paypal">
+                                        Paypal
+                                        <input type="checkbox" id="paypal">
+                                        <span class="checkmark"></span>
+                                    </label>
+                                </div>                                
+                                <div class="checkout__input__checkbox">
+                                    <label for="RazorPay">
+                                        Razor Pay
+                                        <input type="checkbox" id="RazorPay">
+                                        <span class="checkmark"></span>
+                                    </label>
+                                </div>
+                                <button type="submit" class="site-btn">PLACE ORDER</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <h6 class="checkout__title">Select Saved Address</h6>
+                            <div class="address-grid">
+                                <% addresses.forEach((address,index) => { %>
+                                    <div class="address-card">
+                                        <input type="radio" name="selectedAddress" id="address_<%= address._id %>" value='<%= JSON.stringify(address) %>' <%= address.isDefault ? 'checked' : '' %> onclick="fillAddressFields(<%= JSON.stringify(address) %>)">
+                                        <label for="address_<%= address._id %>">
+                                            <div class="address-details">
+                                                <strong>Address:</strong> <%= address.street %>, <%= address.city %>, <%= address.state %> - <%= address.pinCode %>,<%= address.country %>
+                                            </div>
+                                        </label>
+                                    </div>
+                                <% }); %>
+                            </div>
+        </div>
+    </section>
+    <%}else{%>
+        <style>
+            body{
+                background-color: black;
+            }
+        </style>
+    <%}%>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function fillAddressFields(address) {
+        document.querySelector('input[name="street"]').value = address.street || '';
+        document.querySelector('input[name="city"]').value = address.city || '';
+        document.querySelector('input[name="state"]').value = address.state || '';
+        document.querySelector('input[name="pinCode"]').value = address.pinCode || '';
+        document.querySelector('input[name="country"]').value = address.country || '';
+        document.querySelector('input[name="phone"]').value = address.phone || '';
+    }
+    '<% if (typeof success !== 'undefined' && success) { %>'
+        Swal.fire({
+            title: 'Order Placed!',
+            text: 'Thank you for your order! We hope to see you again soon.',
+            icon: 'success',
+            confirmButtonText: 'Close'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/shop'; 
+            }
+        });
+
+   '<% } %>'
+</script>
+    <%-include('../partials/user/footer.ejs')%>

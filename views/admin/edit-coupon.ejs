@@ -1,0 +1,218 @@
+<%-include('../partials/admin/header.ejs')%>
+
+<link rel="stylesheet" href="/css/edit-coupon.css"/>
+<style>
+    /* Container for the form to center it on the page */
+.container {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Heading for the edit coupon form */
+h1 {
+  text-align: center;
+  color: #333;
+  font-family: 'Arial', sans-serif;
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+/* Style for the form group (labels + inputs) */
+.form-group {
+  margin-bottom: 20px;
+}
+
+/* Labels for inputs */
+label {
+  display: block;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+/* Input fields for coupon details */
+input[type="text"],
+input[type="number"],
+input[type="date"] {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* Style for error messages */
+.error-message {
+  color: red;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+/* Button styling */
+button[type="submit"] {
+  width: 100%;
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button[type="submit"]:hover {
+  background-color: #45a049;
+}
+
+button[type="submit"]:active {
+  background-color: #388e3c;
+}
+
+/* Style for focus state of inputs */
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus {
+  border-color: #4CAF50;
+  outline: none;
+}
+
+</style>
+<body>
+  <div class="container">
+    <h1>Edit Coupon</h1>
+    <form id="edit-coupon-form" action="/admin/updateCoupon/<%= coupon._id %>" method="POST">
+      <div class="form-group">
+        <label for="coupon_name">Coupon Code</label>
+        <input type="text" id="coupon_name" name="name" value="<%= coupon.name %>" required>
+        <span id="name-error" class="error-message"></span>
+      </div>
+      <div class="form-group">
+        <label for="description">Description</label>
+        <input type="text" id="description" name="description" value="<%= coupon.description %>" required>
+        <span id="description-error" class="error-message"></span>
+      </div>         
+      <div class="form-group">
+        <label for="offerPrice">Offer Price</label>
+        <input type="number" id="offerPrice" name="offerPrice" value="<%= coupon.offerPrice %>" required>
+        <span id="offerPrice-error" class="error-message"></span>
+      </div>
+        <div class="form-group">
+        <label for="minimumPrice">Offer Price</label>
+        <input type="number" id="minimumPrice" name="minimumPrice" value="<%= coupon.minimumPrice %>" required>
+        <span id="minimumPrice-error" class="error-message"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="expiredOn">Expiry Date</label>
+        <input type="date" id="expiredOn" name="expiredOn" value="<%= coupon.expiredOn.toISOString().split('T')[0] %>" required>
+        <span id="expiredOn-error" class="error-message"></span>
+      </div>
+      
+      <button type="submit">Update Coupon</button>
+    </form>
+  </div>
+
+  <script src="/path/to/your/script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    // Add your JavaScript validation here
+    document.getElementById('edit-coupon-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+  
+      const name = document.getElementById('coupon_name').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const offerPrice = document.getElementById('offerPrice').value.trim();
+      const minimumPrice = document.getElementById('minimumPrice').value.trim();
+      const expiredOn = document.getElementById('expiredOn').value.trim();
+  
+      let isValid = true;
+  
+      if (!name) {
+        document.getElementById('name-error').textContent = 'Coupon name is required.';
+        isValid = false;
+      } else {
+        document.getElementById('name-error').textContent = '';
+      }
+  
+      if (!description) {
+        document.getElementById('description-error').textContent = 'Description is required.';
+        isValid = false;
+      } else {
+        document.getElementById('description-error').textContent = '';
+      }
+  
+      if (!offerPrice || isNaN(offerPrice) || offerPrice <= 0) {
+        document.getElementById('offerPrice-error').textContent = 'Valid offer price is required.';
+        isValid = false;
+      } else {
+        document.getElementById('offerPrice-error').textContent = '';
+      }
+  
+      if (!minimumPrice || isNaN(minimumPrice) || minimumPrice <= 0) {
+        document.getElementById('minimumPrice-error').textContent = 'Valid minimum price is required.';
+        isValid = false;
+      } else {
+        document.getElementById('minimumPrice-error').textContent = '';
+      }
+  
+      if (!expiredOn) {
+        document.getElementById('expiredOn-error').textContent = 'Expiry date is required.';
+        isValid = false;
+      } else {
+        document.getElementById('expiredOn-error').textContent = '';
+      }
+  
+      if (isValid) {
+        const formData = {
+          name,
+          description,
+          offerPrice,
+          minimumPrice,
+          expiredOn,
+        };
+        fetch('/admin/updateCoupon/<%= coupon._id %>', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire({
+                title: 'Success!',
+                text: data.message,
+                icon: 'success',
+                confirmButtonText: 'OK',
+              }).then(() => {
+                window.location.href = '/admin/coupon'; // Redirect to coupons page or wherever needed
+              });
+            } else {
+              Swal.fire({
+                title: 'Error!',
+                text: data.error,
+                icon: 'error',
+                confirmButtonText: 'OK',
+              });
+            }
+          })
+          .catch(error => {
+            Swal.fire({
+              title: 'Error!',
+              text: 'Failed to update coupon. Please try again later.',
+              icon: 'error',
+              confirmButtonText: 'OK',
+            });
+          });
+      }
+    });
+  </script>
+  
+</body>
+<%-include('../partials/admin/footer.ejs')%>
