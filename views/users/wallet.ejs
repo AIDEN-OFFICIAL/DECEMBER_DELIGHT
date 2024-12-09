@@ -24,6 +24,7 @@
               <th>Description</th>
               <th>Date & Time</th>
               <th>Amount</th>
+              <th></th>
 
             </tr>
           </thead>
@@ -34,7 +35,12 @@
                   <td><%= transaction.transactionId %></td>
                   <td><%= transaction.description %></td>
                   <td><%= transaction.date.toLocaleString() %></td>
-                  <td>₹<%= transaction.amount %></td>
+                  <%if(transaction.description ==="debited"){%>
+                    <td style="color: red;">₹<%= transaction.amount %></td>
+                  <%}else{%>
+                    <td style="color: green;">₹<%= transaction.amount %></td>
+                    <%}%>
+                  <td>
                 </tr>
               <% }); %>
             <% } else { %>

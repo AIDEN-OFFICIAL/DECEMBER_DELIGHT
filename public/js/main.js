@@ -209,31 +209,76 @@
     var proQty = $('.pro-qty');
     proQty.prepend('<span class="dec qtybtn">-</span>');
     proQty.append('<span class="inc qtybtn">+</span>');
+    
     proQty.on('click', '.qtybtn', function () {
         var $button = $(this);
-        var oldValue = $button.parent().find('input').val();
-        var $input = $button.parent().find('input'); 
+        var $input = $button.parent().find('input');
+        var oldValue = parseFloat($input.val());
         var maxQty = parseFloat($input.attr('data-max'));
-        console.log(maxQty);
-        
+        var productId = $input.attr('data-product-id');
+        var itemWeight = parseFloat($input.attr('data-item-weight'));
+        // Determine new quantity
+        var newVal = oldValue;
         if ($button.hasClass('inc')) {
-            if (oldValue < maxQty && oldValue < 5) {
-                var newVal = parseFloat(oldValue) + 1;
-            }
-            else {
-                newVal = maxQty > 5 ? 5:maxQty;
-            }
+            newVal = oldValue < maxQty && oldValue < 5 ? oldValue + 1 : Math.min(maxQty, 5);
         } else {
-            // Don't allow decrementing below zero
-            if (oldValue > 0) {
-                var newVal = parseFloat(oldValue) - 1;
-            } else {
-                newVal = 0;
-            }
+            newVal = oldValue > 1 ? oldValue - 1 : 1; // Minimum quantity of 1
         }
-        $button.parent().find('input').val(newVal);
+    
+        // Update the input value
+        $input.val(newVal);
+    
+        // Calculate new total for the item
+        var itemPrice = parseFloat($input.closest('tr').find('.product__cart__item__text h5').text().replace('Rs', '').trim());
+        var itemTotal = newVal * itemWeight * itemPrice;
+        $input.closest('tr').find('.cart__price').text(`Rs ${itemTotal.toFixed(2)}`);
+    
+        // Function to calculate and update total cart price
+        function updateTotalCartPrice() {
+            let subtotal = 0;
+            $('.cart__price').each(function () {
+                subtotal += parseFloat($(this).text().replace('Rs', '').trim());
+            });
+    
+            // Update subtotal
+            $('#subtotal').text(`Rs ${subtotal.toFixed(2)}`);
+    
+            // Handle discounts (optional)
+            let discount = parseFloat($('#discount-amount').text().trim()) || 0;
+            let total = subtotal;
+    
+            // Update total price
+            $('#old-total span').text(`Rs ${total.toFixed(2)}`);
+    
+        } 
+    
+        // Update total cart price
+        updateTotalCartPrice();
+    
+        // Send the updated quantity to the server
+        $.ajax({
+            url: '/cart/update',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                productId: productId,
+                quantity: newVal,
+                weight: itemWeight 
+            }),
+            success: function (response) {
+                console.log('Cart updated:', response);
+                // Optionally, update the total price from the server's response
+                if (response.totalCartPrice) {
+                    $('#subtotal').text(`Rs ${response.totalCartPrice.toFixed(2)}`);
+                    $('#old-total span').text(`Rs ${response.totalCartPrice.toFixed(2)}`);
+                }
+            },
+            error: function (err) {
+                console.error('Error updating cart:', err);
+            }
+        });
     });
-
+    
     
 
     $(".product__details__thumb").niceScroll({

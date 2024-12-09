@@ -8,7 +8,7 @@ const walletSchema = new Schema({
   balance: { type: Number, default: 0 },
   transactions: [
     {
-      transactionId: { type: String, default: uuidv4 }, // Automatically generates a UUID
+      transactionId: { type: String, default: () => uuidv4().substring(0, 8), }, // Automatically generates a UUID
       description: { type: String, required: true }, // "credited" or "debited"
       amount: { type: Number, required: true },
       date: { type: Date, default: Date.now },

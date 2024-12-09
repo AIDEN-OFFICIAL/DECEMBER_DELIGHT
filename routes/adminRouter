@@ -7,6 +7,7 @@ const categoryController = require('../controller/categoryController');
 const productController = require('../controller/productController');
 const adminOrderController = require('../controller/adminOrderController');
 const couponController = require('../controller/couponController');
+const salesController = require('../controller/salesController');
 const { adminAuth } = require('../middlewares/auth');
 const path = require('path');
 
@@ -41,7 +42,8 @@ const uploads = multer({
 
 router.get('/', adminController.loadLogin);
 router.post('/', adminController.login);
-router.get('/dashboard', adminAuth, adminController.loadDashboard);
+router.get('/dashboard', adminAuth, adminController.renderDashboard);
+router.get('/dashboard/load', adminAuth, adminController.loadDashboard);
 router.get('/pageError', adminController.pageError);
 router.get('/logout', preventCache, adminController.logout);
 router.get('/users', adminAuth, customerController.customerInfo);
@@ -92,15 +94,33 @@ router.post(
 router.post('/deleteImage', adminAuth, productController.deleteImage);
 
 router.get('/orderList', adminAuth, adminOrderController.getOrder);
-router.get('/orderList/:orderId', adminAuth, adminOrderController.getOrderDetails);
-router.post('/updateOrderStatus/:orderId', adminAuth, adminOrderController.updateOrderStatus);
+router.get(
+  '/orderList/:orderId',
+  adminAuth,
+  adminOrderController.getOrderDetails
+);
+router.post(
+  '/updateOrderStatus/:orderId',
+  adminAuth,
+  adminOrderController.updateOrderStatus
+);
 
 router.get('/coupon', adminAuth, couponController.getCoupons);
 router.post('/addCoupon', adminAuth, couponController.addCoupon);
-router.delete('/deleteCoupon/:couponId', adminAuth, couponController.deleteCoupon);
+router.delete(
+  '/deleteCoupon/:couponId',
+  adminAuth,
+  couponController.deleteCoupon
+);
 router.get('/editCoupon/:couponId', adminAuth, couponController.editCoupon);
-router.post('/updateCoupon/:couponId',couponController.updateCoupon);
+router.post(
+  '/updateCoupon/:couponId',
+  adminAuth,
+  couponController.updateCoupon
+);
 
+router.get('/salesReport', adminAuth, salesController.getSalesReport);
+router.get('/salesReport/excel', adminAuth, salesController.getSalesReportExcel);
 
 router.get('/*', adminController.pageError);
 module.exports = router;

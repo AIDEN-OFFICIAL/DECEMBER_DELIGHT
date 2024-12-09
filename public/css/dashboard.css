@@ -1,0 +1,140 @@
+.dashboard {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background: #f0f2f5;
+  width: 100%;
+}
+
+.metrics {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: #1c1c3c;
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  flex: 1;
+  margin: 0 10px;
+}
+
+.sales-overview, .visited-customers {
+  margin: 20px 0;
+  background: #1c1c3c;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.date-filter {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 50px; /* Adds spacing between elements */
+    background-color: #f9f9f9; /* Light background for contrast */
+    padding: 10px 20px; /* Space inside the container */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    margin-bottom: 20px; /* Spacing below the filter section */
+}
+
+.date-filter label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333; /* Dark text for readability */
+}
+
+.date-filter input {
+    padding: 5px 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff; /* White background for inputs */
+    transition: border-color 0.3s ease;
+}
+
+.date-filter input:focus {
+    outline: none;
+    border-color: #4caf50; /* Green border on focus */
+}
+
+.date-filter button {
+    padding: 6px 25px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    background-color: #4caf50; /* Green button */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.date-filter button:hover {
+    background-color: #265429; /* Slightly darker green on hover */
+}
+
+
+.download-report {
+  text-align: center;
+}
+
+button {
+  background: #ffc107;
+  color: #000;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.sales-data {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
+  .flex-container {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    margin-top: 20px;
+}
+
+.visited-customers {
+    flex: 1;
+}
+
+.new-sections {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.best-selling,
+.download-report {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#chartLegend {
+  list-style: none;
+  margin-left: 20px;
+}
+
+.chart-legend li {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.chart-legend li span {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 10px;
+  border-radius: 50%;
+}

@@ -1,4 +1,6 @@
 const User = require('../models/userSchema');
+const Order = require('../models/orderSchema');
+const Product = require('../models/productSchema');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const env = require('dotenv').config();
@@ -26,11 +28,11 @@ const login = async (req, res) => {
         req.session.admin = true;
         return res.redirect('/admin/dashboard');
       } else {
-        res.render('admin-login',{errorMessage:'Invalid Credentials'})
+        res.render('admin-login', { errorMessage: 'Invalid Credentials' });
       }
     } else {
       console.log('no admin');
-      res.render('admin-login',{errorMessage:'Invalid Credentials'})
+      res.render('admin-login', { errorMessage: 'Invalid Credentials' });
     }
   } catch (err) {
     console.log('login error', err);
@@ -38,13 +40,273 @@ const login = async (req, res) => {
   }
 };
 
-const loadDashboard = (req, res, next) => {
-  if (req.session && req.session.admin) {
-    res.render('dashboard', { admin: req.session.admin });
-  } else {
-    res.redirect('/admin');
+const renderDashboard = async (req, res) => {
+  try {
+    if (req.session && req.session.admin) {
+      const today = new Date();
+      const startDate = new Date();
+      startDate.setDate(today.getDate() - 30); // Default to last 30 days
+      startDate.setHours(0, 0, 0, 0);
+
+      const endDate = new Date();
+      endDate.setHours(23, 59, 59, 999);
+
+      // Fetch default data for the last 30 days
+      const orders = await Order.find({
+        createdAt: { $gte: startDate, $lte: endDate },
+      }).populate({
+        path: 'orderItems.productId',
+        populate: {
+          path: 'category', // Populate the category of the product
+          model: 'Category',
+        },
+      });
+      const totalSales = orders.reduce((sum, order) => sum + order.totalOrderPrice, 0);
+      const totalOrders = orders.length;
+      
+      const visitorCount = await User.countDocuments({
+        createdAt: { $gte: startDate, $lte: endDate },
+      });
+      const totalDiscount = orders.reduce((sum, order) => sum + (order.discount || 0), 0);
+
+      const productSales = {};
+      const categorySales = {}
+
+
+      orders.forEach((order) => {
+        order.orderItems.forEach((item) => {
+          const product = item.productId;
+          productSales[product.name] = (productSales[product.name] || 0) + item.quantity;
+
+          if (product.category) {
+            const categoryName = product.category.name; // Assuming category is populated
+            categorySales[categoryName] = (categorySales[categoryName] || 0) + item.quantity;
+          }
+        });
+      })
+
+      const topProducts = Object.entries(productSales)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([name, sales]) => ({ name, sales }));
+      
+        const topCategories = Object.entries(categorySales)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([name, sales]) => ({ name, sales }));
+  
+
+      const labels = [];
+      const salesData = [];
+      const dateMap = {};
+
+      orders.forEach((order) => {
+        const date = order.createdAt.toISOString().split("T")[0];
+        dateMap[date] = (dateMap[date] || 0) + order.totalOrderPrice;
+      });
+
+// Generate labels and salesData for all days in the range
+let currentDate = new Date(startDate);
+while (currentDate <= endDate) {
+  const formattedDate = currentDate.toISOString().split('T')[0];
+  labels.push(formattedDate);
+  salesData.push(dateMap[formattedDate] || 0); // Default to 0 if no sales
+  currentDate.setDate(currentDate.getDate() + 1); // Move to the next day
+      }
+      const allOrders = await Order.find({}).populate("orderItems.productId");
+      const overallProductSales = {};
+
+      allOrders.forEach((order) => {
+        order.orderItems.forEach((item) => {
+          overallProductSales[item.productId.name] =
+            (overallProductSales[item.productId.name] || 0) + item.quantity;
+        });
+      });
+
+      const top5 = Object.entries(overallProductSales)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([name, sales]) => ({ name, sales }));
+
+        const productLabels = top5.map(product => product.name);
+      const productData = top5.map(product => product.sales);
+      const canceledDateMap = {};
+
+// Calculate canceled order amounts grouped by date
+orders.forEach((order) => {
+  if (order.status === "Cancelled" || order.status === "Returned") { // Ensure this matches your cancellation status field
+    const date = order.createdAt.toISOString().split("T")[0];
+    canceledDateMap[date] = (canceledDateMap[date] || 0) + order.totalOrderPrice;
+  }
+});
+
+// Generate data for canceled orders
+const canceledData = [];
+currentDate = new Date(startDate);
+while (currentDate <= endDate) {
+  const formattedDate = currentDate.toISOString().split("T")[0];
+  canceledData.push(canceledDateMap[formattedDate] || 0); // Default to 0 if no canceled sales
+  currentDate.setDate(currentDate.getDate() + 1); // Move to the next day
+      }
+      if (labels.length !== salesData.length || labels.length !== canceledData.length) {
+        console.error("Data length mismatch: Labels, Sales Data, and Canceled Sales Data should align.");
+      }
+      
+      // Render the dashboard with initial data
+      res.render("dashboard", {
+        labels,
+        sales: salesData,
+        canceledSales: canceledData,
+        topProducts,
+        topCategories,
+        totalSales,
+        totalOrders,
+        visitorCount,
+        totalDiscount,
+        productLabels:productLabels,
+        productData,
+      });
+    } else {
+      res.redirect("/admin");
+    }
+  } catch (err) {
+    console.error("Error rendering dashboard:", err);
+    res.status(500).send("Error loading the dashboard");
   }
 };
+
+const loadDashboard = async (req, res) => {
+  try {
+    if (req.session && req.session.admin) {
+      console.log("Query Parameters:", req.query);
+      let startDate = req.query.start ? new Date(req.query.start +'T23:59:59Z' ) : null;
+      let endDate = req.query.end ? new Date(req.query.end +'T00:00:00Z' ) : null;
+
+      if (startDate) {
+        startDate = new Date(startDate.setHours(0, 0, 0, 0)); // Start of the day
+        startDate.setDate(startDate.getDate() + 1); // Start of the day
+
+      }
+      if (endDate) {
+        endDate.setDate(endDate.getDate() + 2); // End of the day
+      }
+
+      // Validate the dates
+      if (startDate && isNaN(startDate.getTime())) {
+        return res.status(400).json({ error: "Invalid start date" });
+      }
+      if (endDate && isNaN(endDate.getTime())) {
+        return res.status(400).json({ error: "Invalid end date" });
+      }
+  
+      // Default to the last 30 days if no dates are provided
+      if (!startDate && !endDate) {
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 31); // Last 30 days
+        endDate = new Date();
+      }
+      console.log("Start Date:", startDate);
+      console.log("End Date:", endDate);
+
+      const orders = await Order.find({
+        createdAt: { $gte: startDate, $lte: endDate },
+      }).populate({
+        path: 'orderItems.productId',
+        populate: {
+          path: 'category', // Populate the category of the product
+          model: 'Category',
+        },
+      });
+
+      const totalSales = orders.reduce((sum, order) => sum + order.totalOrderPrice, 0);
+      const totalOrders = orders.length;
+      
+      const visitorCount = await User.countDocuments({
+        createdAt: { $gte: startDate, $lte: endDate },
+      });
+      const totalDiscount = orders.reduce((sum, order) => sum + (order.discount || 0), 0);
+
+      const productSales = {};
+      const categorySales = {}
+        orders.forEach((order) => {
+          order.orderItems.forEach((item) => {
+            const product = item.productId;
+            productSales[product.name] = (productSales[product.name] || 0) + item.quantity;
+  
+            if (product.category) {
+              const categoryName = product.category.name; // Assuming category is populated
+              categorySales[categoryName] = (categorySales[categoryName] || 0) + item.quantity;
+            }
+          });
+        })
+      const topProducts = Object.entries(productSales)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([name, sales]) => ({ name, sales }));
+
+      const topCategories = Object.entries(categorySales)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([name, sales]) => ({ name, sales }));
+
+      const labels = [];
+      const salesData = [];
+      const dateMap = {};
+// Create a map of orders grouped by date
+orders.forEach((order) => {
+  const date = order.createdAt.toISOString().split('T')[0];
+  dateMap[date] = (dateMap[date] || 0) + order.finalAmount;
+});
+
+// Generate labels and salesData for all days in the range
+let currentDate = new Date(startDate);
+while (currentDate <= endDate) {
+  const formattedDate = currentDate.toISOString().split('T')[0];
+  labels.push(formattedDate);
+  salesData.push(dateMap[formattedDate] || 0); // Default to 0 if no sales
+  currentDate.setDate(currentDate.getDate() + 1); // Move to the next day
+      }
+      const canceledDateMap = {};
+
+      // Calculate canceled order amounts grouped by date
+      orders.forEach((order) => {
+        if (order.status === "Cancelled" ||order.status === "Returned" ) { // Ensure this matches your cancellation status field
+          const date = order.createdAt.toISOString().split("T")[0];
+          canceledDateMap[date] = (canceledDateMap[date] || 0) + order.totalOrderPrice;
+        }
+      });
+      
+      // Generate data for canceled orders
+      const canceledData = [];
+      currentDate = new Date(startDate);
+      while (currentDate <= endDate) {
+        const formattedDate = currentDate.toISOString().split("T")[0];
+        canceledData.push(canceledDateMap[formattedDate] || 0); // Default to 0 if no canceled sales
+        currentDate.setDate(currentDate.getDate() + 1); // Move to the next day
+      }
+    console.log("Labels:", labels);
+    console.log("Sales Data:", salesData);
+    console.log("canceled data:", canceledData);
+    res.json({
+      labels,
+      sales: salesData,
+      canceledSales:canceledData,
+      topProducts,
+      topCategories,
+      totalSales,
+      totalOrders,
+      visitorCount,
+      totalDiscount
+    });
+    } else {
+      res.redirect('/admin');
+    }
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Failed to fetch dashboard metrics' });
+    }
+};
+
 const logout = async (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -59,11 +321,11 @@ const pageError = async (req, res) => {
   res.status(404).render('pageError', { title: 'Page Not Found' });
 };
 
-
 module.exports = {
   loadLogin,
   login,
   loadDashboard,
   pageError,
   logout,
+  renderDashboard,
 };

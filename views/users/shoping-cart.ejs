@@ -161,7 +161,7 @@ color: rgb(237, 103, 0);
                                         </div>
                                         <div class="product__cart__item__text">
                                             <h6><a class="pname" href="/products/<%= item.productId._id %>"><%= item.productId.name %></a></h6>
-                                            <h5>Rs <%= item.price.toFixed(2) %></h5>
+                                            <h5  class="cart-price" data-price="<%=item.price%>">Rs <%= item.price.toFixed(2) %></h5>
                                         </div>
                                     </td>
                                     <td class="quantity__item">
@@ -192,25 +192,15 @@ color: rgb(237, 103, 0);
                                 <a href="/shop">Continue Shopping</a>
                             </div>
                         </div>
-                        <div class="col-lg-6 col-md-6 col-sm-6">
-                            <div class="continue__btn update__btn">
-                                <a href="" id="update-cart-btn"><i class="fa fa-spinner"></i> Update Cart</a>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
                 <div class="col-lg-4">
-                    <div class="cart__discount">
-                        <h6>Discount codes</h6>
-                        <form action="#">
-                            <input type="text" placeholder="Coupon code" name="couponCode">
-                            <button type="button" id="apply-coupon-btn" class="primary-btn">Apply</button>
-                        </form>
-                    </div>
+
                     <div class="cart__total">
                         <h6>Cart total</h6>
                         <ul>
-                            <li>Subtotal <span>Rs <%= cart.totalCartPrice.toFixed(2) %></span></li>
+                            <li>Subtotal <span id="subtotal">Rs <%= cart.totalCartPrice.toFixed(2) %></span></li>
                             <li id="discount-row" style="display: none;">Discount <span>Rs <span id="discount-amount">0.00</span></span></li>
                             <li id="old-total">
                                 Total <span>Rs <%= cart.totalCartPrice.toFixed(2) %></span>
@@ -245,45 +235,6 @@ color: rgb(237, 103, 0);
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('update-cart-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            const items = [];
-            document.querySelectorAll('.cart-quantity-input').forEach(input => {
-                const productId = input.getAttribute('data-product-id');
-                const weight = input.getAttribute('data-item-weight');
-                const quantity = input.value;
-    
-                items.push({ productId, quantity, weight });
-            });
-
-            fetch('/cart/update', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ items })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Cart updated',
-                        text: data.message
-                    }).then(() => {
-                        window.location.href = '/cart';  // Redirect to login page
-                    });
-                }
-            })
-            .catch(error => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Could not update cart. Please try again.'
-                });
-            });
-        });
-    
         // Delete product from cart
         document.querySelectorAll('.cart__close .icon_close').forEach(icon => {
             icon.addEventListener('click', function() {
@@ -324,59 +275,14 @@ document.getElementById('coupons-btn').addEventListener('click', () => {
 document.querySelector('.close-btn').addEventListener('click', () => {
     document.getElementById('coupons-modal').style.display = 'none';
 });
-
+ 
 window.addEventListener('click', (event) => {
     const modal = document.getElementById('coupons-modal');
     if (event.target === modal) {
         modal.style.display = 'none';
     }
 });
-document.getElementById('apply-coupon-btn').addEventListener('click', function () {
-    const couponCode = document.querySelector('input[name="couponCode"]').value;
 
-    if (!couponCode.trim()) {
-        Swal.fire("Error", "Please enter a coupon code.", "error");
-        return;
-    }
-
-    fetch('/apply-coupon', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ couponCode })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const discountRow = document.getElementById('discount-row');
-            const discountAmount = document.getElementById('discount-amount');
-            const oldTotal = document.getElementById('old-total');
-            const newTotal = document.getElementById('new-total');
-            const updatedAmount = document.getElementById('updated-amount');
-
-            discountRow.style.display = 'block';
-            discountAmount.textContent = data.discountAmount;
-            updatedAmount.textContent = data.updatedTotal;
-
-            oldTotal.style.display = 'none'; // Hide old total
-            newTotal.style.display = 'block'; // Show new total
-            
-            Swal.fire("Success", data.message, "success");
-
-            const button = document.getElementById('apply-coupon-btn');
-            button.style.backgroundColor = "#28a745"; 
-            button.innerText = "Coupon Applied!";
-        } else {
-            // Show error alert
-            Swal.fire("Error", data.message, "error");
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        Swal.fire("Error", "Something went wrong. Please try again.", "error");
-    });
-});
 
     </script>
     

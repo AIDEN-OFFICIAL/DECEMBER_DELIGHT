@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "chart.js": "^4.4.7",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^4.21.1",
@@ -23,8 +24,12 @@
     "nodemailer": "^6.9.15",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "pdfkit": "^0.15.1",
+    "puppeteer": "^23.9.0",
+    "razorpay": "^2.9.5",
     "sharp": "^0.33.5",
     "uuid": "^11.0.3",
+    "xlsx": "^0.18.5",
     "y": "file:"
   },
   "devDependencies": {

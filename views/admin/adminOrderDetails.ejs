@@ -127,7 +127,9 @@ button:hover {
             <% } %>
         
             <p><strong>Date:</strong> <%= order.createdAt.toDateString() %></p>
-            <p><strong>Total Price:</strong> Rs.<%= order.finalAmount.toFixed(2) %></p>
+            <p><strong>Total Price:</strong><b style="font-weight: bold ;"> Rs.<%= order.finalAmount.toFixed(2) %></b></p>
+            <p><strong>Payment Method:</strong><%= order.paymentMethod%></p>
+            <p><strong>Discount:</strong><%= order.discount%></p>
             <p><strong>Status:</strong> <%= order.status %></p>
         
             <h2>Products</h2>

@@ -7,7 +7,7 @@ const orderSchema = new Schema(
     orderId: {
       type: String,
       required: true,
-      default: uuidv4,
+      default: () => uuidv4().substring(0, 8),
       unique: true,
     },
     userId: { 
@@ -89,7 +89,7 @@ const orderSchema = new Schema(
     paymentMethod: {
       type: String,
       required: true,
-      enum: ['COD', 'Razorpay','Wallet'], // Extend as needed
+      enum: ['COD', 'RazorPay','Wallet'], // Extend as needed
       default: 'COD',
     },
     paymentStatus: {

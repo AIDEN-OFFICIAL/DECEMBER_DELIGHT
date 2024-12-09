@@ -106,3 +106,19 @@ button:hover {
 .back-button{
     text-decoration: none; color: white; padding: 10px 15px; background-color: orange; border-radius: 10px; margin-bottom: 20px; position: relative;
 }
+.logout-link {
+    margin-top: auto; /* Push to bottom */
+    width: 88%;
+    padding: 10px;
+    background-color: #d9534f;
+    color: #fff;
+    text-align: center;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.logout-link:hover {
+    background-color: #c9302c;
+}

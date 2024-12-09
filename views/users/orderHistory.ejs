@@ -17,6 +17,8 @@
             <a href="#payment-methods">Payment Methods</a>
             <a href="#notifications">Notifications</a>
             <a href="#settings">Account Settings</a>
+            <a href="/logout" class="logout-link">Logout</a>
+
         </aside>
         <div class="content">
             <h1>Order History</h1>
@@ -29,6 +31,7 @@
                         <th>Order Price</th>
                         <th>Status</th>
                         <th>Actions</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -41,8 +44,11 @@
                             <td><%= order.status %></td>
                             <td>
                                 <a href="/profile/orderHistory/<%= order._id %>" class="viewd" >View Details</a> 
-                                <% if (order.status !== 'Cancelled' && order.status !== 'Delivered') { %>
-                                        <button type="button" class="cancel-order-btn" data-order-id="<%= order._id %>">Cancel</button>
+                                <% if (order.status === 'Delivered') { %>
+                                    <button type="button" id="return-order-btn" data-order-id="<%= order._id %>">Return</button>
+                                    <a href="/profile/invoice/<%= order._id %>" class="invoice" style="text-decoration: none;color: rgb(5, 121, 125);">Invoice📥</a> 
+                                    <% } else if (order.status !== 'Cancelled' && order.status !== 'Return Request' && order.status !== 'Returned') { %>
+                                    <button type="button" id="cancel-order-btn" data-order-id="<%= order._id %>">Cancel</button>
                                 <% } %>
                             </td>
                         </tr>
@@ -54,12 +60,11 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const cancelButtons = document.querySelectorAll('.cancel-order-btn');
-            
+            // Select cancel buttons
+            const cancelButtons = document.querySelectorAll('#cancel-order-btn');
             cancelButtons.forEach(button => {
                 button.addEventListener('click', () => {
                     const orderId = button.getAttribute('data-order-id');
-                    
                     Swal.fire({
                         title: 'Are you sure?',
                         text: "You won't be able to revert this!",
@@ -71,7 +76,6 @@
                         cancelButtonText: 'No, keep it'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            // Submit the form programmatically
                             fetch(`/profile/orderHistory/${orderId}/cancel`, {
                                 method: 'POST'
                             })
@@ -104,7 +108,57 @@
                     });
                 });
             });
+    
+            // Select return buttons
+            const returnButtons = document.querySelectorAll('#return-order-btn');
+            returnButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const orderId = button.getAttribute('data-order-id');
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: 'You are requesting a return for this order.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes, request return!',
+                        cancelButtonText: 'No, keep it',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            fetch(`/profile/orderHistory/${orderId}/return`, {
+                                method: 'POST'
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire(
+                                        'Request Sent!',
+                                        'Your return request has been processed.',
+                                        'success'
+                                    ).then(() => {
+                                        window.location.reload();
+                                    });
+                                } else {
+                                    Swal.fire(
+                                        'Error!',
+                                        data.message || 'Something went wrong.',
+                                        'error'
+                                    );
+                                }
+                            })
+                            .catch(() => {
+                                Swal.fire(
+                                    'Error!',
+                                    'Unable to process the return request.',
+                                    'error'
+                                );
+                            });
+                        }
+                    });
+                });
+            });
         });
     </script>
+    
 </body>
 </html>

@@ -31,12 +31,11 @@
                                 </select>
                                 <input type="text" placeholder="Search" name="search" value="<%= search %>">
                                 <button type="submit"><i class="fa fa-search"></i></button>
-                            </form>
                         </div>
-                    </div>
+                    </div>     
                     <div class="col-lg-5 col-md-5">
                         <div class="shop__option__right">
-                            <select id="sortDropdown">
+                            <select id="sortDropdown" name="sort" onchange="document.getElementById('shop-filter-form').submit()">
                                 <option value="">Default sorting</option>
                                 <option value="asc" <%= sort === 'asc' ? 'selected' : '' %>>aA to zZ</option>
                                 <option value="desc" <%= sort === 'desc' ? 'selected' : '' %>>zZ to aA</option>
@@ -47,7 +46,10 @@
                             <a href="#"><i class="fa fa-list"></i></a>
                             <a href="#"><i class="fa fa-reorder"></i></a>
                         </div>
-                    </div>
+                    </div>                       
+                </form>
+
+
                     <input type="hidden" name="sort" id="sortInput">
                 </div>
             </div>
@@ -74,19 +76,30 @@
             <div class="shop__last__option">
                 <div class="row">
                     <div class="col-lg-6 col-md-6 col-sm-6">
-                        <div class="shop__pagination">
-                            <a href="#">1</a>
-                            <a href="#">2</a>
-                            <a href="#">3</a>
-                            <a href="#"><span class="arrow_carrot-right"></span></a>
-                        </div>
+                      <div class="shop__pagination">
+                        <% if (currentPage > 1) { %>
+                          <a href="?search=<%= search %>&sort=<%= sort %>&categoryId=<%= categoryId %>&page=<%= currentPage - 1 %>">
+                            <span class="arrow_carrot-left"></span>
+                          </a>
+                        <% } %>
+                        <% for (let i = 1; i <= totalPages; i++) { %>
+                          <a href="?search=<%= search %>&sort=<%= sort %>&categoryId=<%= categoryId %>&page=<%= i %>"
+                            class="<%= currentPage === i ? 'active' : '' %>"><%= i %></a>
+                        <% } %>
+                        <% if (currentPage < totalPages) { %>
+                          <a href="?search=<%= search %>&sort=<%= sort %>&categoryId=<%= categoryId %>&page=<%= currentPage + 1 %>">
+                            <span class="arrow_carrot-right"></span>
+                          </a>
+                        <% } %>
+                      </div>
                     </div>
                     <div class="col-lg-6 col-md-6 col-sm-6">
-                        <div class="shop__last__text">
-                            <p>Showing 1-9 of <%= products.length %> results</p>
-                        </div>
+                      <div class="shop__last__text">
+                        <p>Showing <%= (currentPage - 1) * pageSize + 1 %>-<%= Math.min(currentPage * pageSize, totalProducts) %> of <%= totalProducts %> results</p>
+                      </div>
                     </div>
-                </div>
+                  </div>
+                  
             </div>
         </div>
     </section>

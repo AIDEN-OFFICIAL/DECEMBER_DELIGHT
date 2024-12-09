@@ -90,7 +90,8 @@
                                     <h3>
                                         <a href="/profile" class="user-name"><b><%= user.name %></b></a> | 
                                         <a href="/logout" class="logout-link"><b>Logout</b></a>
-                                    </h3>                                <% } else { %>
+                                    </h3>                                
+                                    <% } else { %>
                                 <ul>
                                     <li><a href="/signin"><b>Login</b></a> <span class="arrow_carrot-down"></span>
                                         <ul>
@@ -110,10 +111,11 @@
                                     <a href="/wishlist"><img src="/images/icon/heart.png" alt=""></a>
                                 </div>
                                 <div class="header__top__right__cart">
-                                    <a href="" id="orgcart"><img src="/images/icon/cart.png" alt=""> <span>0</span></a>
                                     <%if (user){%>
+                                        <a href="" id="orgcart"><img src="/images/icon/cart.png" alt=""> <span  class="badge bg-danger rounded-pill" style="font-size:small;" ><%= cartAmount?cartAmount.items.length : 0%></span></a>
                                         <div class="cart__price">Cart: <span>Rs <%= cartAmount ? cartAmount.totalCartPrice : '0.00' %></span></div>
                                         <%}else{%>
+                                        <a href="" id="orgcart"><img src="/images/icon/cart.png" alt=""> <span class="badge bg-danger rounded-pill" style="font-size:small;">0</span></a>
                                     <div class="cart__price">Cart: <span>Rs 0.00</span></div>
                                     <%}%>
                                     <a href="/wallet"><img src="/images/wallet1.png" alt="wallet" style="width: 40px;padding-left: 10px;"></a>

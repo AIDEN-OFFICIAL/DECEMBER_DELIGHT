@@ -1,0 +1,140 @@
+<%- include('../partials/admin/header.ejs') %>
+
+<section class="content-main" id="report-section"> 
+    <div class="content-header">
+        <h2 class="content-title">Sales Report</h2>
+    </div>
+
+    <form id="filter-form" method="get">
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <label>Start Date</label>
+                <input type="date" class="form-control" name="startDate" value="<%= filters.startDate || '' %>">
+            </div>
+            <div class="col-md-3">
+                <label>End Date</label>
+                <input type="date" class="form-control" name="endDate" value="<%= filters.endDate || '' %>">
+            </div>
+            <div class="col-md-3">
+                <label>Status</label>
+                <select class="form-control" name="status">
+                    <option value="">All</option>
+                    <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                    <option value="Order Placed" <%= filters.status === 'Order Placed' ? 'selected' : '' %>>Order Placed</option>
+                    <option value="Processing" <%= filters.status === 'Processing' ? 'selected' : '' %>>Processing</option>
+                    <option value="Shipped" <%= filters.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                    <option value="Delivered" <%= filters.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                    <option value="Cancelled" <%= filters.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                    <option value="Return Request" <%= filters.status === 'Return Request' ? 'selected' : '' %>>Return Request</option>
+                    <option value="Returned" <%= filters.status === 'Returned' ? 'selected' : '' %>>Returned</option>
+                </select>
+            </div>
+            <div class="offset-md-4 col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Total Orders</h5>
+                    <p><%= totalOrders %></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Total Revenue</h5>
+                    <p>₹<%= totalRevenue.toFixed(2) %></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Total Discounts</h5>
+                    <p>₹<%= totalDiscounts.toFixed(2) %></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Revenue After Discounts</h5>
+                    <p>₹<%= revenueAfterDiscounts.toFixed(2) %></p>
+                </div>
+            </div>
+        </div>
+            <div class="col-md-3">
+                <h5>Order Status</h5>
+                <ul>
+                    <% for (let [status, count] of Object.entries(orderStatusStats)) { %>
+                        <li><%= status %>: <%= count %></li>
+                    <% } %>
+                </ul>
+            </div>
+            
+        <div class="col-md-3">
+            <h5>Payment Methods</h5>
+            <ul>
+                <% for (let [method, count] of Object.entries(paymentStats)) { %>
+                    <li><%= method %>: <%= count %></li>
+                <% } %>
+            </ul>
+        </div>
+    </div>
+    <div class="d-flex align-items-end gap-2 mt-3">
+        <button id="download-pdf" class="btn btn-secondary flex-grow-1" style="font-size: larger;">Download PDF</button>
+        <button id="download-excel" class="btn btn-success flex-grow-1" style="font-size: larger;">Download as Excel</button>
+    </div>
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/html-to-image/dist/html-to-image.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script>
+        document.getElementById('download-pdf').addEventListener('click', async () => {
+            const { jsPDF } = window.jspdf;
+    
+            try {
+                const reportSection = document.getElementById('report-section');
+                if (!reportSection) {
+                    alert('Report section not found!');
+                    return;
+                }
+    
+                // Capture the report section as an image
+                const imgData = await htmlToImage.toPng(reportSection);
+    
+                // Generate PDF
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgWidth = 210; 
+                const imgHeight = (reportSection.offsetHeight / reportSection.offsetWidth) * imgWidth;
+    
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                pdf.save('sales-report.pdf');
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                alert('Failed to generate PDF. Check console for details.');
+            }
+        });
+    </script>
+    
+    <script>
+        document.getElementById('download-excel').addEventListener('click', () => {
+                // Get filter values from the form
+    const startDate = document.querySelector('input[name="startDate"]').value;
+    const endDate = document.querySelector('input[name="endDate"]').value;
+    const status = document.querySelector('select[name="status"]').value;
+
+    // Build query string
+    const queryParams = new URLSearchParams({ startDate, endDate, status }).toString();
+
+            window.location.href = `/admin/salesReport/excel?${queryParams}`;
+        });
+    </script>
+</section>
+
+<%- include('../partials/admin/footer.ejs') %>

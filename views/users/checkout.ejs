@@ -1,7 +1,131 @@
 <%-include('../partials/user/header.ejs')%>
 <style>
+    .pname {
+    color: black;
+    text-decoration: none;
+    background-color: transparent;
+}
+.pname:hover{
+color: rgb(237, 103, 0);
+}
 
-</style>    
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Darker backdrop */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensures it appears above other elements */
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #ffffff, #f8f8f8); /* Subtle gradient for a modern look */
+    border-radius: 15px; /* Rounded corners */
+    padding: 25px 30px;
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2); /* Soft shadow for depth */
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    position: relative;
+    animation: slideDown 0.3s ease; /* Entrance animation */
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #333; /* Neutral close button */
+    transition: color 0.3s ease; /* Smooth hover effect */
+}
+
+.close-btn:hover {
+    color: #e74c3c; /* Bright red on hover */
+}
+
+.modal-content h3 {
+    font-family: 'Poppins', sans-serif; /* Modern font */
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #2c3e50; /* Dark text color for better contrast */
+}
+
+#coupons-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#coupons-list li {
+    font-family: 'Roboto', sans-serif; /* Clean font for the list */
+    font-size: 16px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f1f1f1;
+    border-radius: 8px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, background-color 0.3s ease; /* Smooth hover */
+}
+
+#coupons-list li:hover {
+    transform: scale(1.03); /* Slight scale on hover */
+    background-color: #eafaf1; /* Light green for a friendly feel */
+}
+
+#coupons-list li strong {
+    color: #16a085; /* Highlight coupon names in green */
+    font-weight: bold;
+}
+
+.modal-content p {
+    font-family: 'Open Sans', sans-serif; /* Lightweight font for additional details */
+    font-size: 14px;
+    color: #93abac;
+    margin-top: 10px;
+}
+
+#apply-coupon-btn{
+    font-size: 14px;
+    color: #ffffff;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: #111111;
+    padding: 15px 44px;
+    border: none;
+    position: absolute;
+    right: 100px;
+    top: 9px;
+}
+#apply-coupon-label{
+    font-size: 17px;
+    color: #444444;
+    height: 50px;
+    width: 50%;
+    border: 1px solid #e1e1e1;
+    padding-left: 20px;
+    left:30px;
+}
+</style>   
 <!-- Breadcrumb Begin -->
     <div class="breadcrumb-option">
         <div class="container">
@@ -31,8 +155,10 @@
                 <form action="/checkout" method="POST">
                     <div class="row">
                         <div class="col-lg-8 col-md-6">
-                            <h6 class="coupon__code"><span class="icon_tag_alt"></span> Have a coupon? <a href="#">Click
-                            here</a> to enter your code</h6>
+       
+                            <button type="button" class="coupon__code" id="coupons-btn" ><span class="icon_tag_alt"></span> Check Coupons</button>
+                            <input type="text" placeholder="Coupon code" id="apply-coupon-label" name="couponCode">
+                            <button type="button" id="apply-coupon-btn" class="primary-btn">Apply</button>
                             <h6 class="checkout__title">Billing Details</h6>
                             <div class="row">
                                 <div class="col-lg-6">
@@ -44,30 +170,30 @@
                             </div>
                             <div class="checkout__input">
                                 <p>Country<span>*</span></p>
-                                <input type="text"  value="<%=defaultAddress.country%>" name="country"  required>
+                                <input type="text" value="<%= defaultAddress ? defaultAddress.country : '' %>" name="country" required>
                             </div>
                             <div class="checkout__input">
                                 <p>Address<span>*</span></p>
-                                <input type="text" placeholder="Street Address" class="checkout__input__add" name="street" value="<%=defaultAddress.street%>"  required>
+                                <input type="text" placeholder="Street Address" class="checkout__input__add" value="<%= defaultAddress ? defaultAddress.street : '' %>" name="street" required>
                                 <input type="text" placeholder="Apartment, suite, unite ect (optinal)">
                             </div>
                             <div class="checkout__input">
                                 <p>Town/City<span>*</span></p>
-                                <input type="text" value="<%=defaultAddress.city%>" name="city"  required>
+                                <input type="text" value="<%= defaultAddress ? defaultAddress.city : '' %>" name="city" required>
                             </div>
                             <div class="checkout__input">
                                 <p>State<span>*</span></p>
-                                <input type="text" value="<%=defaultAddress.state%>" name="state"  required>
+                                <input type="text" value="<%= defaultAddress ? defaultAddress.state : '' %>" name="state" required>
                             </div>
                             <div class="checkout__input">
                                 <p>Pincode / ZIP<span>*</span></p>
-                                <input type="text" value="<%=defaultAddress.pinCode%>" name="pinCode"  required>
+                                <input type="text" value="<%= defaultAddress ? defaultAddress.pinCode : '' %>" name="pinCode" required>
                             </div>
                             <div class="row">
                                 <div class="col-lg-6">
                                     <div class="checkout__input">
                                         <p>Phone<span>*</span></p>
-                                        <input type="text" value="<%=user.phone%>" name="phone"  required>
+                                        <input type="text" value="<%= defaultAddress ? defaultAddress.phoneNumber : '' %>" name="phone"  required>
                                     </div>
                                 </div>
                                 <div class="col-lg-6">
@@ -88,20 +214,38 @@
                                 placeholder="Notes about your order, e.g. special notes for delivery." name="notes">
                             </div>
                         </div>
-                            
+                        <!-- Coupons Modal -->
+<div id="coupons-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h3>Available Coupons</h3>
+        <ul id="coupons-list">
+            <% coupon.forEach(coupon => { %>
+            <li>
+                <strong><%= coupon.name %></strong>:<br> <%= coupon.description %> - Rs <%= coupon.offerPrice %> off
+            </li>
+            <% }); %>
+        </ul>
+    </div>
+</div>
  
                         <div class="col-lg-4 col-md-6">
                             <div class="checkout__order" style="width: 450px;">
                                 <h6 class="order__title">Your order</h6>
-                                <div class="checkout__order__products">Product  <span style="float: none ; margin-left: 130px;" >quantity</span>  <span>Total</span></div>
+                                <div class="checkout__order__products">Product / Qty  <span>Total</span></div>
                                 <ul class="checkout__total__products">
                                     <% cart.items.forEach((item, index) => { %>
-                                        <li><samp><%=(index+1).toString().padStart(2, '0')%>.</samp> <%=item.productId.name%>   <span style="float: none ; margin-left: 90px;" ><%=item.quantity%><span> <span>Rs <%=item.productId.salePrice%></span></li>
+                                        <li><samp><%=(index+1).toString().padStart(2, '0')%>.</samp> <%=item.productId.name%><b style="color: #e74c3c;"> x </b><strong style="color: black;"><%=item.quantity%></strong><span>Rs <%=item.productId.salePrice%></span></li>
                                         <% }); %>
                                 </ul>
                                 <ul class="checkout__total__all">
-                                    <li>Subtotal <span><%=cart.totalCartPrice%></span></li>
-                                    <li>Total <span><%=cart.totalCartPrice%></span></li>
+                                    <li>Subtotal <span id="subtotal">Rs <%=cart.totalCartPrice%>.00</span></li>
+                                    <li id="discount-row" style="display: none;">Discount <span>Rs <span id="discount-amount"> 0.00</span></span></li>
+                                    <li id="delivery">Delivery charge <span id="discount-amount">Rs 100</span></span></li>
+                                    <li id="old-total">Total <span>Rs <%=cart.totalCartPrice + 100%>.00</span></li>
+                                    <li id="new-total" style="display: none;">
+                                        Total <span>Rs <span id="updated-amount"> 0.00</span></span>
+                                    </li> 
                                 </ul>
                                 <% if (error) { %>
                                     <div class="alert alert-danger">
@@ -109,33 +253,47 @@
                                     </div>
                                 <% } %>
                                 <p>Thank you for shopping from <br><b>DECEMBER DELIGHT</b>.<br>Looking forward to serving you again soon.</p>
-                                <div class="checkout__input__checkbox">
-                                    <label for="payment">
-                                       COD
-                                        <input type="checkbox" id="payment">
-                                        <span class="checkmark"></span>
+                                <div class="checkout__input__radio">
+                                    <%if(cart.totalCartPrice > 1000){%>
+                                    <label for="cod">
+                                    COD<p style="color: #2c3e50; font-size: smaller;text-align: center;">(only available for order under 1000)</p></span>
+                                      <input type="radio" id="cod" name="paymentMethod" value="COD" disabled>
+                                      <%}else{%>
+                                    <label for="cod">
+                                        COD
+                                      <input type="radio" id="cod" name="paymentMethod" value="COD" >
+                                      <%}%>
+                                      <span class="checkmark"></span>
                                     </label>
-                                </div>
-                                <div class="checkout__input__checkbox">
-                                    <label for="paypal">
-                                        Paypal
-                                        <input type="checkbox" id="paypal">
-                                        <span class="checkmark"></span>
+                                  </div>
+                                  <div class="checkout__input__radio">
+                                    <label for="wallet">
+                                      Wallet  <strong style="color: orange;">(Balance:Rs <%= wallet?.balance || 0 %>)</strong>
+                                      <input type="radio" id="wallet" name="paymentMethod" value="Wallet">
+                                      <span class="checkmark"></span>
                                     </label>
-                                </div>                                
-                                <div class="checkout__input__checkbox">
-                                    <label for="RazorPay">
-                                        Razor Pay
-                                        <input type="checkbox" id="RazorPay">
-                                        <span class="checkmark"></span>
+                                  </div>
+                                  <div class="checkout__input__radio">
+                                    <label for="razorpay">
+                                      Razor Pay
+                                      <input type="radio" id="razorpay" name="paymentMethod" value="RazorPay">
+                                      <span class="checkmark"></span>
                                     </label>
-                                </div>
-                                <button type="submit" class="site-btn">PLACE ORDER</button>
+                                  </div>
+                                  <input type="hidden" id="walletBalanceInput" value="<%= wallet?.balance || 0 %>">
+                                  <div id="walletBalanceDiv" style="display: none;" ></div>
+                                  <input type="hidden" id="totalOrderAmount" value="<%= totalOrderAmount %>">
+                                <button type="submit" class="site-btn" id="placeOrderButton">PLACE ORDER</button>
                             </div>
                         </div>
                     </div>
                 </form>
             </div>
+            <script>
+               const amount = "<%= cart.totalCartPrice%>";
+
+            </script>
+            
             <h6 class="checkout__title">Select Saved Address</h6>
                             <div class="address-grid">
                                 <% addresses.forEach((address,index) => { %>
@@ -158,8 +316,171 @@
             }
         </style>
     <%}%>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    document.getElementById('coupons-btn').addEventListener('click', () => {
+    document.getElementById('coupons-modal').style.display = 'flex';
+});
+
+document.querySelector('.close-btn').addEventListener('click', () => {
+    document.getElementById('coupons-modal').style.display = 'none';
+});
+
+window.addEventListener('click', (event) => {
+    const modal = document.getElementById('coupons-modal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+    const placeOrderButton = document.querySelector('#placeOrderButton');
+    const walletBalanceInput = document.querySelector('#walletBalanceInput'); 
+    const paymentMethodRadios = document.querySelectorAll('input[name="paymentMethod"]'); // Payment method radio buttons
+    const walletBalanceDiv = document.querySelector('#walletBalanceDiv'); 
+
+    walletBalanceDiv.style.display = 'none';
+
+    const walletBalance = '<%= wallet?.balance || 0 %>';
+    console.log(walletBalance)
+
+    placeOrderButton.addEventListener('click', async (event) => {
+    event.preventDefault();
+
+    const selectedPaymentMethod = [...paymentMethodRadios].find(radio => radio.checked)?.value;
+
+
+    if (!selectedPaymentMethod) {
+        Swal.fire({
+            title: 'Error',
+            text: 'Please select a payment method.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+        return;
+    }
+
+    if (selectedPaymentMethod === 'Wallet') {
+        const totalOrderAmount = parseFloat(document.querySelector('#totalOrderAmount').value) || 0;
+            // Wallet payment method
+            if (walletBalance < totalOrderAmount) { // Assume `totalOrderAmount` is the amount to pay
+                Swal.fire({
+                    title: 'Insufficient Balance',
+                    text: 'Your wallet balance is insufficient to place this order.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                });
+            } else {
+                // Deduct wallet balance and proceed
+                const proceed = await handleWalletPayment(totalOrderAmount);
+                if (proceed) {
+                    await handleCheckout(true);
+                }
+            }
+        } else if (selectedPaymentMethod === 'COD') {
+        // COD selected, directly call checkout
+        await handleCheckout(false);
+    } else if (selectedPaymentMethod === 'RazorPay') {
+        // Razorpay selected, initiate Razorpay flow
+        const paymentSuccess = await handleRazorpayPayment();
+        if (paymentSuccess) {
+            await handleCheckout(true);
+        }else{
+            await handleCheckout(false);
+
+        }
+    }
+});
+async function handleWalletPayment(amount) {
+        try {
+            const response = await fetch('/wallet-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount }), // Send the amount to deduct
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                Swal.fire({
+                    title: 'Payment Successful!',
+                    text: 'Your wallet payment has been processed successfully.',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                });
+                return true;
+            } else {
+                Swal.fire({
+                    title: 'Payment Failed',
+                    text: data.message || 'Failed to process wallet payment.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                });
+                return false ;
+            }
+        } catch (error) {
+            Swal.fire({
+                title: 'Error',
+                text: 'Something went wrong while processing wallet payment.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+            });
+            console.error('Error processing wallet payment:', error);
+            return false;
+        }
+    }
+    let isCheckoutInProgress = false;
+    async function handleCheckout(paymentSuccess) {
+        if (isCheckoutInProgress) return;
+        isCheckoutInProgress = true;
+
+        const checkoutForm = document.querySelector('.checkout__form form');
+        // Create FormData object
+        const formData = new FormData(checkoutForm);
+        const formObject = {};
+        formData.forEach((value, key) => {
+            formObject[key] = value;
+        });
+        formObject.paymentSuccess = paymentSuccess;
+
+        try {
+            const response = await fetch('/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formObject),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                Swal.fire({
+                    title: 'Order Placed!',
+                    text: result.message,
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                }).then(() => {
+                     setTimeout(() => {
+                     window.location.href = '/shop';
+                     }, 2000); 
+});
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: result.message,
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                });
+            }
+        } catch (error) {
+            Swal.fire({
+                title: 'Error',
+                text: 'Something went wrong. Please try again later.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+            });
+            console.error('Error submitting form:', error);
+        }
+    }
+
     function fillAddressFields(address) {
         document.querySelector('input[name="street"]').value = address.street || '';
         document.querySelector('input[name="city"]').value = address.city || '';
@@ -181,5 +502,191 @@
         });
 
    '<% } %>'
+
+async function handleRazorpayPayment() {
+  try {
+    // Display a loading SweetAlert while creating the order
+    Swal.fire({
+      title: 'Processing Payment',
+      text: 'Please wait while we prepare your payment...',
+      icon: 'info',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
+    // Make an API call to your server to create an order
+    const response = await fetch('/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount, currency: 'INR' }) // Example: Rs 500
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      Swal.fire({
+        title: 'Order Creation Failed',
+        text: 'We were unable to create the order. Please try again later.',
+        icon: 'error',
+        confirmButtonText: 'Okay'
+      });
+      return false;
+      console.log("this order creation failed");
+    }
+
+    const { order } = data;
+
+    Swal.close();
+
+    // Razorpay options
+    const options = {
+      key: "rzp_test_MxcoFSkTHjM7vY", 
+      amount: order.amount,
+      currency: order.currency,
+      name: "December Delight",
+      description: "Test Transaction",
+      order_id: order.id,
+      handler:async function (response) {
+        try {
+        const verifyResponse = await fetch('/verify-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(response),
+        });
+        const verifyData = await verifyResponse.json();
+        if (verifyData.success) {
+            //   await handleCheckout(true);
+              return true
+            } else {
+              return false
+            }
+        } catch (error) {
+            console.error('Verification Error:', error);
+          Swal.fire({
+            title: 'Verification Error',
+            text: 'An error occurred during payment verification. Order placed with Pending status.',
+            icon: 'error',
+            confirmButtonText: 'Okay',
+          });
+          return false;
+        }
+    },
+        prefill: {
+        name: "AIDEN",
+        email: "aidencterrence@gmail.com",
+        contact: "8891471531"
+      },
+      theme: {
+        color: "#3399cc"
+      }
+    };
+
+    const razorpayInstance = new Razorpay(options);
+    razorpayInstance.open();
+    razorpayInstance.on('payment.failed',async function (response) {
+            Swal.fire({
+                title: 'Payment Cancelled',
+                text: 'You closed the payment window without completing the transaction.',
+                icon: 'info',
+                confirmButtonText: 'Okay'
+            });
+            // await handleCheckout(false);
+            return false;
+        });
+        return true
+  } catch (error) {
+    console.error('Error initiating payment:', error);
+    Swal.fire({
+      title: 'Payment Error',
+      text: 'Something went wrong while processing your payment. Please try again.',
+      icon: 'error',
+      confirmButtonText: 'Okay'
+    });
+    return false;
+     console.log("payment error");
+  }
+}
+let isCouponApplied = false;
+document.getElementById('apply-coupon-btn').addEventListener('click', function () {
+    const couponCode = document.querySelector('input[name="couponCode"]').value;
+            const couponInput = document.getElementById('apply-coupon-label');
+            const discountRow = document.getElementById('discount-row');
+            const discountAmount = document.getElementById('discount-amount');
+            const oldTotal = document.getElementById('old-total');
+            const newTotal = document.getElementById('new-total');
+            const updatedAmount = document.getElementById('updated-amount');
+            const applyCouponBtn = document.getElementById('apply-coupon-btn');
+
+
+
+    if (!isCouponApplied) {
+        if (!couponCode.trim()) {
+        Swal.fire("Error", "Please enter a coupon code.", "error");
+        return;
+    }
+    fetch('/apply-coupon', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ couponCode })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            discountRow.style.display = 'block';
+            discountAmount.textContent = data.discountAmount;
+            const updatedAmountValue = parseInt(data.updatedTotal) + 100;
+            updatedAmount.textContent =updatedAmountValue,
+            oldTotal.style.display = 'none';
+            newTotal.style.display = 'block';
+            applyCouponBtn.textContent = 'Remove Coupon';
+
+            Swal.fire("Success", data.message, "success");
+
+            const button = document.getElementById('apply-coupon-btn');
+            button.style.backgroundColor = "red"; 
+            button.innerText = "Remove coupon!";
+            isCouponApplied = true;
+            // button.disabled = true;
+            // document.getElementById('apply-coupon-label').disabled=true;
+        } else {
+            Swal.fire("Error", data.message, "error");
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        Swal.fire("Error", "Something went wrong. Please try again.", "error");
+    });
+   }else{
+                fetch('/remove-coupon', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ couponCode })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                    Swal.fire('Success', 'Coupon removed successfully!', 'success');
+                    discountRow.style.display = 'none';
+                    newTotal.style.display = 'none';
+                    oldTotal.style.display = 'block';
+
+                    isCouponApplied = false;
+                    applyCouponBtn.textContent = 'Apply';
+                    applyCouponBtn.style.backgroundColor='black'
+                    couponInput.value = '';
+                } else {
+                    Swal.fire('Error', data.message || 'Failed to remove coupon.', 'error');
+                }
+            })
+            .catch(err => {
+                Swal.fire('Error', 'Something went wrong while removing the coupon.', 'error');
+            });
+        }
+});
 </script>
-    <%-include('../partials/user/footer.ejs')%>
+<%-include('../partials/user/footer.ejs')%>

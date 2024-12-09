@@ -1,7 +1,7 @@
 const User = require('../models/userSchema');
 const Category = require('../models/categorySchema');
 const Product = require('../models/productSchema');
-const Wishlist = require('../models/wishlistSchema'); 
+const Wishlist = require('../models/wishlistSchema');
 const Cart = require('../models/cartSchema');
 const Coupon = require('../models/couponSchema');
 const bcrypt = require('bcrypt');
@@ -24,16 +24,19 @@ const loadHomePage = async (req, res) => {
       category: { $in: categories.map((category) => category._id) },
       quantity: { $gt: 0 },
     })
-      .populate('category') 
+      .populate('category')
       .sort({ createdAt: -1 })
       .limit(8);
 
-    productData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    // productData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     if (user) {
       const userData = await User.findOne({ _id: user._id });
-      const cartAmount = await Cart.findOne({ userId: user._id, status: 'active' })
-      res.render('home', { user: userData, products: productData ,cartAmount});
+      const cartAmount = await Cart.findOne({
+        userId: user._id,
+        status: 'active',
+      });
+      res.render('home', { user: userData, products: productData, cartAmount });
     } else {
       res.render('home', { user: null, products: productData });
     }
@@ -201,8 +204,8 @@ const forgotPassword = async (req, res) => {
     // Resend OTP logic
     const newOtp = generateOtp();
     const email = req.session.userData.email;
-    console.log("forgorpass",email);
-    
+    console.log('forgorpass', email);
+
     console.log('Generated OTP:', newOtp);
 
     const emailSent = await sendVerificationEmail(email, newOtp);
@@ -233,31 +236,30 @@ const forgotPassword = async (req, res) => {
 
 const getForgotPassword = async (req, res) => {
   try {
-    res.render('resetPassword')
+    res.render('resetPassword');
   } catch (error) {
     console.error('Error in loading reset password page', err);
     return res.redirect('/pageError');
   }
-}
+};
 
 const resetPassword = async (req, res) => {
   try {
     const email = req.session.userData.email;
-    const password = req.body.password
+    const password = req.body.password;
 
-    
     const user = await User.findOne({ email });
 
     user.password = password;
     console.log(user.password);
     await user.save();
-    
+
     req.session.userData = null;
   } catch (error) {
     console.error('Error resetting Password:', error);
     return res.status(500).send('Server Error');
   }
-}
+};
 
 const loadSignin = async (req, res) => {
   try {
@@ -265,7 +267,7 @@ const loadSignin = async (req, res) => {
     const errorMessage = req.session.message || '';
 
     req.session.successMessage = null;
-    req.session.message = null ;
+    req.session.message = null;
     if (req.session.user) {
       res.redirect('/');
     } else {
@@ -335,15 +337,18 @@ const forgotOtp = async (req, res) => {
       const otp = generateOtp();
       const existingUser = await User.findOne({ email });
       if (!existingUser) {
-        return res.render('signin', { errorMessage: 'Email is not registered please Signup',successMessage:null });
+        return res.render('signin', {
+          errorMessage: 'Email is not registered please Signup',
+          successMessage: null,
+        });
       }
       const emailSent = await sendVerificationEmail(email, otp);
       if (!emailSent) {
         return res.json('email-error');
       }
-  
+
       req.session.userOtp = otp;
-      req.session.userData = {email};  
+      req.session.userData = { email };
       res.render('forgotOtp');
       console.log('OTP sent:', otp);
     }
@@ -358,21 +363,20 @@ const viewProduct = async (req, res) => {
     const product = await Product.findById(productId).populate('category'); // Find the product by ID and populate the category
     let wishlist = [];
 
-
     if (!product) {
       return res.status(404).send('Product not found');
     }
-    const user = req.session.user; 
+    const user = req.session.user;
     let cartAmount = 0;
     if (user) {
       cartAmount = await Cart.findOne({ userId: user._id, status: 'active' });
-    
+
       const userWishlist = await Wishlist.findOne({ userId: user._id });
       if (userWishlist) {
-        wishlist = userWishlist.items.map(item => item.productId.toString());
+        wishlist = userWishlist.items.map((item) => item.productId.toString());
       }
     }
-      res.render('productDetails', { product, user ,cartAmount,wishlist}); // Pass both product and user data to the view
+    res.render('productDetails', { product, user, cartAmount, wishlist }); // Pass both product and user data to the view
   } catch (error) {
     console.error('Error retrieving product:', error);
     res.status(500).send('Server error while retrieving product');
@@ -384,8 +388,10 @@ const getShop = async (req, res) => {
     let search = req.query.search || '';
     const sort = req.query.sort || '';
     const categoryId = req.query.categoryId;
-    const category = await Category.find({isListed:true});
-    let query = {name: { $regex: search, $options: 'i' }}
+    const category = await Category.find({ isListed: true });
+    const currentPage = parseInt(req.query.page) || 1; // Get current page from query, default to 1
+    const pageSize = 8;
+    let query = { name: { $regex: search, $options: 'i' } };
     if (categoryId) {
       query.category = categoryId;
     }
@@ -395,35 +401,61 @@ const getShop = async (req, res) => {
     switch (sort) {
       case 'asc':
         sortOption = { name: 1 };
-        break;      
-        case 'desc':
+        break;
+      case 'desc':
         sortOption = { name: -1 };
-        break;      
-        case 'highPrice':
+        break;
+      case 'highPrice':
         sortOption = { salePrice: -1 };
-        break;      
-        case 'lowPrice':
+        break;
+      case 'lowPrice':
         sortOption = { salePrice: 1 };
-        break;      
-        case 'latest':
+        break;
+      case 'latest':
         sortOption = { createdAt: -1 };
-        break;      
+        break;
       default:
         sortOption = {};
     }
- 
 
-    const products = await Product.find(query).sort(sortOption).populate('category', 'name');;
-    
+    const totalProducts = await Product.countDocuments(query);
+    const products = await Product.find(query)
+      .sort(sortOption)
+      .populate('category', 'name')
+      .skip((currentPage - 1) * pageSize)
+      .limit(pageSize);
+
+    const totalPages = Math.ceil(totalProducts / pageSize);
+
     const user = req.session.user;
     let cartAmount = null;
     if (user) {
       cartAmount = await Cart.findOne({ userId: user._id, status: 'active' });
     }
     if (req.get('X-Requested-With') === 'XMLHttpRequest') {
-      return res.json({ products,user , category, categoryId, search, sort ,cartAmount});
-  }
-    res.render('shop', { products, user ,category ,categoryId,search ,sort,cartAmount }); // Pass both product and user data to the view
+      return res.json({
+        products,
+        user,
+        category,
+        categoryId,
+        search,
+        sort,
+        cartAmount,
+      });
+    }
+    res.render('shop', {
+      products,
+      user,
+      category,
+      categoryId,
+      search,
+      sort,
+      cartAmount,
+      currentPage,
+      pageSize,
+      totalPages,
+      totalProducts,
+    });
   } catch (error) {
     console.error('Error retrieving product:', error);
     res.status(500).send('Server error while retrieving product');
@@ -432,57 +464,121 @@ const getShop = async (req, res) => {
 const getCart = async (req, res) => {
   try {
     if (!req.session || !req.session.user) {
-      console.log("user not found.");
-      return res.status(401).json({ error: 'Login required to access the Cart.' });
+      console.log('user not found.');
+      return res
+        .status(401)
+        .json({ error: 'Login required to access the Cart.' });
     }
     const user = req.session.user;
     const userId = req.session.user._id;
-    let cart = await Cart.findOne({ userId, status: 'active' }).populate('items.productId');
-    const cartAmount = await Cart.findOne({ userId: userId, status: 'active' })// for displaying cart amount in the header
+    let cart = await Cart.findOne({ userId, status: 'active' }).populate(
+      'items.productId'
+    );
+    const cartAmount = await Cart.findOne({ userId: userId, status: 'active' }); // for displaying cart amount in the header
     const coupon = await Coupon.find({});
-
     if (!cart) {
-      return res.render('shoping-cart', { empty: true, user, shop, cartAmount , coupon })
+      return res.render('shoping-cart', {
+        empty: true,
+        user,
+        shop,
+        cartAmount,
+        coupon,
+      });
+      shop = false;
+    } else {
+      return res.render('shoping-cart', {
+        empty: false,
+        cart,
+        user,
+        shop,
+        cartAmount,
+        coupon,
+      });
       shop = false;
     }
-    else {
-      return res.render('shoping-cart', { empty: false, cart, user, shop, cartAmount ,coupon })
-      shop = false;
-    }
-    
   } catch (error) {
     res.redirect('/pageError');
   }
-}
-  const getWishlist = async (req, res) => {
-    try {
-      const user = req.session.user;
-      const userId = req.session.user._id;
-      const cartAmount = await Cart.findOne({ userId:userId, status: 'active' })
-      const wishlist = await Wishlist.findOne({ userId }).populate('items.productId');
+};
+const getWishlist = async (req, res) => {
+  try {
+    const user = req.session.user;
+    const userId = req.session.user._id;
+    const cartAmount = await Cart.findOne({ userId: userId, status: 'active' });
+    const wishlist = await Wishlist.findOne({ userId }).populate(
+      'items.productId'
+    );
 
-      return res.render('wishlist', {user, shop ,cartAmount,wishlist: wishlist?.items || [],})
-      shop = false;
-      
-    } catch (error) {
-      res.redirect('/pageError');
+    return res.render('wishlist', {
+      user,
+      shop,
+      cartAmount,
+      wishlist: wishlist?.items || [],
+    });
+    shop = false;
+  } catch (error) {
+    res.redirect('/pageError');
+  }
+};
+const changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  try {
+    if (!req.session || !req.session.user) {
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message: 'Unauthorized. Please log in first.',
+        });
     }
-}
-  module.exports = {
-    loadHomePage,
-    loadSignup,
-    loadSignin,
-    signup,
-    verifyOtp,
-    signin,
-    forgotOtp,
-    forgotPassword,
-    getForgotPassword,
-    resetPassword,
-    getCart,
-    logout,
-    pagenotfound,
-    viewProduct,
-    getShop,
-    getWishlist,
-  };
+    const user = await User.findById(req.session.user._id);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'User not found.' });
+    }
+
+    const isPasswordMatch = await user.comparePassword(currentPassword);
+    if (!isPasswordMatch) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Current password is incorrect.' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    return res
+      .status(200)
+      .json({ success: true, message: 'Password updated successfully.' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    return res
+      .status(500)
+      .json({
+        success: false,
+        message: 'Internal server error. Please try again.',
+      });
+  }
+};
+
+
+module.exports = {
+  loadHomePage,
+  loadSignup,
+  loadSignin,
+  signup,
+  verifyOtp,
+  signin,
+  forgotOtp,
+  forgotPassword,
+  getForgotPassword,
+  resetPassword,
+  getCart,
+  logout,
+  pagenotfound,
+  viewProduct,
+  getShop,
+  getWishlist,
+  changePassword,
+};

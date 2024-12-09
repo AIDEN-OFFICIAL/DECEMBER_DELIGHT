@@ -352,7 +352,7 @@
         }),
       });
       const data = await response.json();
-      if(response.ok && data.status === true){
+      if(data.status){
         swal.fire(
             "offer added",
             "The offer has been added",

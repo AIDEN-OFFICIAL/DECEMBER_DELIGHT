@@ -15,29 +15,40 @@
             <a href="/profile/orderHistory" class="active">Order History</a>
             <a href="#payment-methods">Payment Methods</a>
             <a href="#notifications">Notifications</a>
-            <a href="#settings">Account Settings</a>        </aside>
+            <a href="#settings">Account Settings</a>
+            <a href="/logout" class="logout-link">Logout</a>
+        </aside>
         <div class="content">
             <a href="/profile/orderHistory" class="back-button">⬅ Back to Order History</a>
             <h1>Order Details - #<%= order.orderId %></h1>
             <p><strong>Date:</strong> <%= order.createdAt.toDateString() %></p>
             <p><strong>Total Price:</strong> Rs.<%= order.finalAmount.toFixed(2) %></p>
+            <p><strong>Discount:</strong> <%= order.discount %></p>
+            <p><strong>Delivery charge:</strong>Rs 100</p>
+            <p><strong>Payment Method:</strong> <%= order.paymentMethod %></span>
             <p><strong>Status:</strong> <%= order.status %></p>
+
+            <% if (order.status !== 'Cancelled' && order.status !== 'Delivered') { %>
+                <button type="button" id="cancel-order-btn" class="cancel-order-btn" data-order-id="<%= order._id %>">
+                    Cancel Order
+                </button>
+            <% } %>
 
             <h2>Products</h2>
             <table>
                 <thead>
-                    <tr><th></th>
+                    <tr>
+                        <th></th>
                         <th>Product Name</th>
                         <th>Price</th>
                         <th>Quantity</th>
                         <th>Weight</th>
-                        <th>Total Price:</th>
+                        <th>Total Price</th>
                     </tr>
                 </thead>
                 <tbody>
                     <% order.orderItems.forEach(item => { %>
                         <tr>
-                            <!-- Display product image -->
                             <td>
                                 <% if (item.productId.images && item.productId.images.length > 0) { %>
                                     <img src="<%= item.productId.images[0].url %>" alt="<%= item.productId.images[0].altText %>" style="width: 50px; height: 50px;">
@@ -45,13 +56,13 @@
                                     <span>No image available</span>
                                 <% } %>
                             </td>
-                            
-                            <td><a href="/products/<%= item.productId._id %>"  style="text-decoration: none; color: orange;"><b><%= item.productId.name %></b></a></td>
-                            
-                            <td>Rs. <%= item.productId.salePrice%></td>
-                            
-                               <td style="padding-left: 30px;"><%= item.quantity %></td>
-                            
+                            <td>
+                                <a href="/products/<%= item.productId._id %>" style="text-decoration: none; color: orange;">
+                                    <b><%= item.productId.name %></b>
+                                </a>
+                            </td>
+                            <td>Rs. <%= item.productId.salePrice %></td>
+                            <td style="padding-left: 30px;"><%= item.quantity %></td>
                             <td>
                                 <% if (item.weight) { %>
                                     <%= item.weight %> kg
@@ -59,14 +70,68 @@
                                     N/A
                                 <% } %>
                             </td>
-                            
                             <td>Rs. <%= (item.price * item.quantity).toFixed(2) %></td>
                         </tr>
                     <% }); %>
-                </tbody>                
+                </tbody>
             </table>
-            Notes:<%=order.orderNotes%>
+            <p><strong>Notes:</strong> <%= order.orderNotes || 'None' %></p>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cancelButton = document.getElementById('cancel-order-btn');
+
+            if (cancelButton) {
+                cancelButton.addEventListener('click', () => {
+                    const orderId = cancelButton.getAttribute('data-order-id');
+
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You won't be able to revert this!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Yes, cancel it!',
+                        cancelButtonText: 'No, keep it'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            fetch(`/profile/orderHistory/${orderId}/cancel`, {
+                                method: 'POST',
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire(
+                                        'Cancelled!',
+                                        'Your order has been cancelled.',
+                                        'success'
+                                    ).then(() => {
+                                        window.location.href = '/profile/orderHistory';
+                                    });
+                                } else {
+                                    Swal.fire(
+                                        'Error!',
+                                        data.message || 'Something went wrong.',
+                                        'error'
+                                    );
+                                }
+                            })
+                            .catch(() => {
+                                Swal.fire(
+                                    'Error!',
+                                    'Unable to cancel the order.',
+                                    'error'
+                                );
+                            });
+                        }
+                    });
+                });
+            }
+        });
+    </script>
 </body>
 </html>

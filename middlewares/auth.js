@@ -24,10 +24,9 @@ const userAuth = (req, res, next) => {
   }
 };
 
-
 const adminAuth = (req, res, next) => {
-    if (req.session.admin) {
-        User.findOne({isAdmin: true})
+  if (req.session.admin) {
+    User.findOne({ isAdmin: true })
       .then((data) => {
         if (data) {
           next();

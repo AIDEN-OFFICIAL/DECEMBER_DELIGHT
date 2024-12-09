@@ -1,10 +1,257 @@
 <%- include("../../views/partials/admin/header") %>
-<section class="content-main">
-    <div class="content-header">
-        <div>
-            <h2 class="content-title card-title">Dashboard </h2>
-        </div>
-       
+<link rel="stylesheet" href="/css/dashboard.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<section class="content-main" id="report-section"> 
+  <div class="content-header">
+        <div class="dashboard">
+                        <!-- Date Range Filter -->
+                        <div class="date-filter">
+                            <div class="col-lg-12">
+                                <label for="date-range">Select Date Range:</label>
+                                <input type="text" id="date-range" class="offset-1"  placeholder="Choose a date range">
+                            <button id="apply-filter" class="offset-1">Apply</button>
+
+                            </div>
+                        </div>
+            <!-- Metrics Cards -->
+            <div class="metrics">
+              <div class="card">
+                <h3 id="total-sales">₹<%= totalSales.toLocaleString() %></h3>
+                <p>Total Sales</p>
+                <span class="percent">+35%</span>
+              </div>
+              <div class="card">
+                <h3 id="total-discount"><%=totalDiscount%></h3>
+                <p>Total Discount</p>
+                <span class="percent">-35%</span>
+              </div>
+              <div class="card">
+                <h3 id="visitors"><%=visitorCount%></h3>
+                <p>Total Visitors</p>
+                <span class="percent">+15%</span>
+              </div>
+              <div class="card">
+                <h3 id="total-orders"><%= totalOrders %></h3>
+                <p>Total Orders</p>
+                <span class="percent">+25%</span>
+              </div>
+            </div>
+          
+            <!-- Sales Overview Graph -->
+            <div class="sales-overview">
+              <canvas id="salesChart"></canvas>
+            </div>
+          
+
+          
+<!-- Flex Container for Pie Chart and New Divs -->
+<div class="flex-container">
+    <!-- Visited Customers -->
+    <div class="visited-customers" style="height: auto; width: 500px;">
+      <h2 class="chart-heading" style="text-align: center;">Top 5 Products</h2>
+        <canvas id="customerPieChart"></canvas>
+        <ul id="chartLegend" class="chart-legend"></ul>
     </div>
-</section>
+
+    <!-- New Divs to the Right -->
+    <div class="new-sections">
+        <!-- Best Selling Data -->
+        <div class="best-selling">
+            <div class="top-products">
+                <h4 >Top 10 Best Selling Products</h4>
+                <ul id="top-products-list">
+                  <% topProducts.forEach((product) => { %>
+                    <li>
+                      <strong><%= product.name %></strong>: <%= product.sales %> sales
+                    </li>
+                  <% }); %>
+                </ul>
+            </div>
+            <div class="top-categories">
+                <h4>Top 10 Best Selling Categories</h4>
+                <ul id="top-categories-list">
+                  <% topCategories.forEach((category) => { %>
+                    <li>
+                      <strong><%= category.name %></strong>: <%= category.sales %> sales
+                    </li>
+                  <% }); %>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Download Report -->
+
+    </div>
+</div>
+<div class="download-report">
+    <button id="download-pdf">Download Report</button>
+</div>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/html-to-image/dist/html-to-image.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+<script>
+  document.getElementById('download-pdf').addEventListener('click', async () => {
+            const { jsPDF } = window.jspdf;
+    
+            try {
+                const reportSection = document.getElementById('report-section');
+                if (!reportSection) {
+                    alert('Report section not found!');
+                    return;
+                }
+    
+                // Capture the report section as an image
+                const imgData = await htmlToImage.toPng(reportSection);
+    
+                // Generate PDF
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgWidth = 210; 
+                const imgHeight = (reportSection.offsetHeight / reportSection.offsetWidth) * imgWidth;
+    
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                pdf.save('Sales-Statistics.pdf');
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                alert('Failed to generate PDF. Check console for details.');
+            }
+        });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<script src="/path/to/your/custom.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+const SaleLabels = <%- JSON.stringify(labels) %>;
+const SaleData = <%- JSON.stringify(sales) %>;
+const CanceledSaleData = <%- JSON.stringify(canceledSales || []) %>; // Add this line
+
+  console.log(SaleLabels); // Verify the labels array
+  console.log(SaleData);   // Verify the data array
+  console.log(CanceledSaleData);
+
+  let salesChart;
+
+    const ctx = document.getElementById("salesChart").getContext("2d");
+     salesChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: SaleLabels,
+        datasets: [
+        {
+          label: "Sales",
+          data: SaleData,
+          backgroundColor: "rgba(75, 192, 192, 0.2)",
+          borderColor: "rgba(75, 192, 192, 1)",
+          borderWidth: 2,
+        },
+        // {
+        //   label: "Canceled Sales",
+        //   data: CanceledSaleData, // Add data for canceled sales
+        //   backgroundColor: "rgba(255, 99, 132, 0.2)",
+        //   borderColor: "rgba(255, 99, 132, 1)",
+        //   borderWidth: 2,
+        // },
+      ],
+      }
+    });
+    // const productLabels = <%=productLabels %>;
+    // const productData = <%=productData %>;
+  const productLabels = <%- JSON.stringify(productLabels) %>;
+  const productData = <%- JSON.stringify(productData) %>;
+
+  console.log(productLabels); // Verify the labels array
+  console.log(productData);   // Verify the data array
+
+  const customerCtx = document.getElementById("customerPieChart").getContext("2d");
+  
+  const customerPieChart = new Chart(customerCtx, {
+    type: "doughnut",
+    data: {
+      labels: productLabels,
+      datasets: [{
+        data: productData,
+        backgroundColor:[
+  "#4caf50", // Green
+  "#2196f3", // Blue
+  "#ff9800", // Orange
+  "#f44336", // Red
+  "#9c27b0", // Purple
+],
+      }],
+    },
+  });
+  
+  const today = new Date();
+  const startDate = new Date();
+  startDate.setDate(today.getDate() - 30); // 30 days ago
+
+  const flatpickrInstance = flatpickr("#date-range", {
+    mode: "range",
+    defaultDate: [startDate, today],
+    dateFormat: "Y-m-d", // Customize date format
+  });
+    document.getElementById("apply-filter").addEventListener("click", async () => {
+      const selectedDates = flatpickrInstance.selectedDates;
+    if (selectedDates.length !== 2) {
+      alert("Please select a valid date range.");
+      return;
+    }
+    const startDate = selectedDates[0].toISOString().split("T")[0];
+    const endDate = selectedDates[1].toISOString().split("T")[0];
+    try {
+      const response = await fetch(`/admin/dashboard/load?start=${startDate}&end=${endDate}`);
+      const data = await response.json();
+  
+    salesChart.data.labels = data.labels;
+    salesChart.data.datasets[0].data = data.sales; // Update "Sales" data
+    // salesChart.data.datasets[1].data = data.canceledSales; // Update "Canceled Sales" data
+    salesChart.update();
+    
+      const totalDiscount = data.totalDiscount;
+      document.getElementById("total-discount").textContent = `${totalDiscount}`;
+      document.getElementById("total-sales").textContent = `₹${data.totalSales.toLocaleString()}`;
+      document.getElementById("total-orders").textContent = `${data.totalOrders}`;
+      document.getElementById("visitors").textContent = `${data.visitorCount}`;
+
+    const topProductsList = document.getElementById("top-products-list");
+    topProductsList.innerHTML = ""; // Clear existing data
+    if (Array.isArray(data.topProducts)) {
+      data.topProducts.forEach((product) => {
+        const li = document.createElement("li");
+        li.textContent = `${product.name} - ${product.sales} sold`;
+        topProductsList.appendChild(li);
+      });
+    } else {
+      topProductsList.innerHTML = "<li>No products found.</li>";
+    }
+
+    // Update best-selling categories if data is available
+    const topCategoriesList = document.getElementById("top-categories-list");
+    topCategoriesList.innerHTML = ""; // Clear existing data
+    if (Array.isArray(data.topCategories)) {
+      data.topCategories.forEach((category) => {
+        const li = document.createElement("li");
+        li.textContent = `${category.name} - ${category.sales} sold`;
+        topCategoriesList.appendChild(li);
+      });
+    } else {
+      topCategoriesList.innerHTML = "<li>No categories found.</li>";
+    }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      alert("Failed to fetch data. Please try again later.");
+    }
+  });
+});
+
+  document.getElementById("download-report").addEventListener("click", () => {
+    window.location.href = "/admin/dashboard/report";
+  });
+
+  
+  </script>
+  </section>
+
 <%- include("../../views/partials/admin/footer") %>

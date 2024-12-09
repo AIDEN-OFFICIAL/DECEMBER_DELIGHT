@@ -42,9 +42,14 @@ const customerInfo = async (req, res) => {
 const customerBlocked = async (req, res) => {
   try {
     let id = req.query.id;
-   let result= await User.updateOne({ _id: id }, { $set: { isBlocked: true } })
+    let result = await User.updateOne(
+      { _id: id },
+      { $set: { isBlocked: true } }
+    );
     if (result.modifiedCount > 0) {
-      res.status(200).json({ status: true, message: 'Confirm to block the User' });
+      res
+        .status(200)
+        .json({ status: true, message: 'Confirm to block the User' });
     }
   } catch (err) {
     res.redirect('/pageError');

@@ -35,13 +35,13 @@ const cartSchema = new Schema(
           type: Number,
           required: true,
         },
-        appliedCoupon: { type:Schema.Types.ObjectId, ref: 'Coupon', default: null },
         addedAt: {
           type: Date,
           default: Date.now,
         },
       },
     ],
+    appliedCoupon: { type:Schema.Types.ObjectId, ref: 'Coupon', default: null },
     totalCartPrice: {
       type: Number,
       required: true,
@@ -60,7 +60,7 @@ cartSchema.pre('save', function (next) {
   if (!this.isModified('totalCartPrice')) {
     let total = 0;
     this.items.forEach((item) => {
-      item.totalPrice = item.quantity * item.price;
+      item.totalPrice = item.quantity * item.price* item.weight;
       total += item.totalPrice; // Sum the total price for each item in the cart
     });
     this.totalCartPrice = total;
