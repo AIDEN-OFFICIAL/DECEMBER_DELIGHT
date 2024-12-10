@@ -76,9 +76,9 @@
                             <li>Stock: <span><%= product.quantity %> </span></li>
                             <li>Category: <span><%= product.category.name %></span></li>
                             <%if(product.quantity > 0){%>
-                            <li>Status: <span style="color: rgb(33, 255, 3);"><%= product.status%></span></li>
+                            <li>Status: <span style="color: rgb(33, 255, 3);">In Stock</span></li>
                             <%}else{%>
-                                <li>Status: <span style="color: rgb(255, 28, 3);"><%= product.status%></span></li> 
+                                <li>Status: <span style="color: rgb(255, 28, 3);">Out  Of Stock</span></li> 
                             <%}%>
 
                         </ul>

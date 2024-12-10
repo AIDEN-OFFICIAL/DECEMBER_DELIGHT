@@ -387,7 +387,6 @@ window.addEventListener('click', (event) => {
             await handleCheckout(true);
         }else{
             await handleCheckout(false);
-
         }
     }
 });
@@ -525,7 +524,6 @@ async function handleRazorpayPayment() {
     });
 
     const data = await response.json();
-
     if (!data.success) {
       Swal.fire({
         title: 'Order Creation Failed',
@@ -559,10 +557,15 @@ async function handleRazorpayPayment() {
         const verifyData = await verifyResponse.json();
         if (verifyData.success) {
             //   await handleCheckout(true);
-              return true
-            } else {
-              return false
-            }
+            // return true; 
+            }else {
+            Swal.fire({
+              title: 'Verification Failed',
+              text: 'Payment could not be verified. Please try again.',
+              icon: 'error',
+            });
+            return false;
+        }
         } catch (error) {
             console.error('Verification Error:', error);
           Swal.fire({
@@ -585,18 +588,18 @@ async function handleRazorpayPayment() {
     };
 
     const razorpayInstance = new Razorpay(options);
-    razorpayInstance.open();
     razorpayInstance.on('payment.failed',async function (response) {
-            Swal.fire({
-                title: 'Payment Cancelled',
-                text: 'You closed the payment window without completing the transaction.',
-                icon: 'info',
-                confirmButtonText: 'Okay'
-            });
+Swal.fire({
+    icon: 'error',
+    title: 'Payment Failed',
+    text: response.error.description || 'The payment process failed.',
+    allowOutsideClick: false,
+})
             // await handleCheckout(false);
             return false;
-        });
-        return true
+        });        
+    razorpayInstance.open();
+    return true;
   } catch (error) {
     console.error('Error initiating payment:', error);
     Swal.fire({

@@ -26,6 +26,7 @@
             <p><strong>Discount:</strong> <%= order.discount %></p>
             <p><strong>Delivery charge:</strong>Rs 100</p>
             <p><strong>Payment Method:</strong> <%= order.paymentMethod %></span>
+            <p><strong>Payment Status:</strong> <%= order.paymentStatus %></span>
             <p><strong>Status:</strong> <%= order.status %></p>
 
             <% if (order.status !== 'Cancelled' && order.status !== 'Delivered') { %>

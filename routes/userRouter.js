@@ -132,8 +132,9 @@ router.post('/create-order', async (req, res) => {
   console.log(req.body);
 
   try {
+    const totalAmount = parseInt(amount)+100
     const options = {
-      amount: amount * 100,
+      amount: totalAmount *100,
       currency: currency || 'INR',
       receipt: receipt || `receipt_${Date.now()}`,
     };
@@ -150,10 +151,16 @@ router.post('/create-order', async (req, res) => {
 
 // Verify payment signature (Razorpay Callback)
 router.post('/verify-payment', async (req, res) => {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature,orderId } =
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature,} =
     req.body;
-
+    console.log('razorpay_order_id:', razorpay_order_id);
+    console.log('razorpay_payment_id:', razorpay_payment_id);
+    console.log('razorpay_signature:', razorpay_signature);
+    
   try {
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ success: false, message: 'Missing required parameters' });
+    }
     const body = razorpay_order_id + '|' + razorpay_payment_id;
 
     const expectedSignature = crypto
@@ -162,18 +169,14 @@ router.post('/verify-payment', async (req, res) => {
       .digest('hex');
 
     if (expectedSignature === razorpay_signature) {
-      await Order.updateOne(
-        { orderId },
-        { $set: { paymentStatus: 'Paid' } }
-      );
       res
         .status(200)
         .json({ success: true, message: 'Payment verified successfully.' });
     } else {
-      await Order.updateOne(
-        { orderId },
-        { $set: { paymentStatus: 'Pending' } }
-      );
+      console.error('Invalid Signature:', {
+        expected: expectedSignature,
+        received: razorpay_signature,
+      });
       res.status(400).json({ success: false, message: 'Invalid signature.' });
     }
   } catch (error) {
