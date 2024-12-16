@@ -230,7 +230,7 @@
     
         // Calculate new total for the item
         var itemPrice = parseFloat($input.closest('tr').find('.product__cart__item__text h5').text().replace('Rs', '').trim());
-        var itemTotal = newVal * itemWeight * itemPrice;
+        var itemTotal = newVal *  itemPrice;
         $input.closest('tr').find('.cart__price').text(`Rs ${itemTotal.toFixed(2)}`);
     
         // Function to calculate and update total cart price

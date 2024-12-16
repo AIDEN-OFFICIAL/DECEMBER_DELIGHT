@@ -45,7 +45,6 @@ const addCoupon = async (req, res) => {
         .status(400)
         .json({ success: false, message: 'All fields are required.' });
     }
-
     const existingCoupon = await Coupon.findOne({ name });
     if (existingCoupon) {
       return res
@@ -53,6 +52,14 @@ const addCoupon = async (req, res) => {
         .json({
           success: false,
           message: 'A coupon with this name already exists.',
+        });
+    }
+    if (minimumPrice <= offerPrice) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: 'Minimum amount should be greater than offer price.',
         });
     }
 
@@ -126,7 +133,14 @@ const updateCoupon = async (req, res) => {
       return res.status(400).json({ error: 'All fields are required.' });
     }
     console.log(name, description, offerPrice, minimumPrice, expiredOn);
-
+    if (minimumPrice <= offerPrice) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          error: 'Minimum amount should be greater than offer price.',
+        });
+    }
     // Find the coupon and update its details
     const updatedCoupon = await Coupon.findByIdAndUpdate(
       couponId,

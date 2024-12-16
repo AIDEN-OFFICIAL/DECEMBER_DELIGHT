@@ -132,9 +132,8 @@ router.post('/create-order', async (req, res) => {
   console.log(req.body);
 
   try {
-    const totalAmount = parseInt(amount)+100
     const options = {
-      amount: totalAmount *100,
+      amount: amount * 100,
       currency: currency || 'INR',
       receipt: receipt || `receipt_${Date.now()}`,
     };
@@ -151,39 +150,79 @@ router.post('/create-order', async (req, res) => {
 
 // Verify payment signature (Razorpay Callback)
 router.post('/verify-payment', async (req, res) => {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature,} =
-    req.body;
-    console.log('razorpay_order_id:', razorpay_order_id);
-    console.log('razorpay_payment_id:', razorpay_payment_id);
-    console.log('razorpay_signature:', razorpay_signature);
-    
+  console.log("verify payment")
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
+
+  console.log('--- Verify Payment Endpoint Hit ---');
+  console.log('Received Data:', {
+    razorpay_order_id,
+    razorpay_payment_id,
+    razorpay_signature,
+    orderId,
+  });
+
   try {
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return res.status(400).json({ success: false, message: 'Missing required parameters' });
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !orderId) {
+      console.error('Missing required parameters');
+      // return res
+      //   .status(400)
+      //   .json({ success: false, message: 'Missing required parameters' });
     }
+
     const body = razorpay_order_id + '|' + razorpay_payment_id;
+    console.log('Constructed Body for Signature:', body);
 
     const expectedSignature = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(body)
       .digest('hex');
+    console.log('Expected Signature:', expectedSignature);
 
     if (expectedSignature === razorpay_signature) {
-      res
+    
+
+      console.log('Signature Matched. Updating Payment Status to Paid.');
+      const updateResult = await Order.updateOne(
+        { _id:orderId }, 
+        { $set: { paymentStatus: 'Paid', status:'Order Placed' } }
+      );
+      console.log('Payment Status Update Result:', updateResult);
+      return res
         .status(200)
         .json({ success: true, message: 'Payment verified successfully.' });
     } else {
-      console.error('Invalid Signature:', {
-        expected: expectedSignature,
-        received: razorpay_signature,
-      });
-      res.status(400).json({ success: false, message: 'Invalid signature.' });
+      console.warn('Invalid Signature. Updating Payment Status to Pending.');
+      const updateResult = await Order.updateOne(
+        { _id: orderId },
+        { 
+            $set: { 
+                paymentStatus: 'Pending',
+                status: 'Pending' 
+            } 
+        }
+    );
+    
+      console.log('Payment Status Update Result:', updateResult);
+      return res.status(400).json({ success: false, message: 'Invalid signature.' });
     }
   } catch (error) {
     console.error('Error verifying Razorpay payment:', error);
     res
       .status(500)
       .json({ success: false, message: 'Unable to verify payment.' });
+  }
+});
+
+router.get('/success', (req, res) => {
+  try {
+    // Render the success.ejs view
+    res.render('success', {
+      pageTitle: 'Order Success',
+    });
+    
+  } catch (error) {
+    console.error('Error rendering success page:', error);
+    res.status(500).send('Server Error');
   }
 });
 

@@ -334,6 +334,75 @@ window.addEventListener('click', (event) => {
         modal.style.display = 'none';
     }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+// Select the form and define required fields with validation rules
+const form = document.querySelector('.checkout__form form');
+const requiredFields = [
+    { name: 'name', type: 'text', message: 'Full Name is required' },
+    { name: 'country', type: 'text', message: 'Country is required' },
+    { name: 'street', type: 'text', message: 'Street Address is required' },
+    { name: 'city', type: 'text', message: 'City is required' },
+    { name: 'state', type: 'text', message: 'State is required' },
+    { name: 'pinCode', type: 'text', regex: /^\d{5,6}$/, message: 'Enter a valid 5 or 6 digit ZIP/Pincode' },
+    { name: 'phone', type: 'text', regex: /^\d{10}$/, message: 'Enter a valid 10-digit phone number' },
+    { name: 'email', type: 'email', message: 'Enter a valid email address' }
+];
+
+// Add event listener for form submission
+form.addEventListener('submit', (event) => {
+    let isValid = true;
+
+    // Loop through each required field and validate
+    requiredFields.forEach(field => {
+        const input = form.querySelector(`[name="${field.name}"]`);
+        const value = input ? input.value.trim() : '';
+        const errorMessage = input.parentElement.querySelector('.error-message');
+
+        // Clear previous errors
+        if (errorMessage) {
+            errorMessage.remove();
+        }
+
+        // Check if field is empty
+        if (!value) {
+            isValid = false;
+            showError(input, field.message);
+        } 
+        // Check regex validation (if applicable)
+        else if (field.regex && !field.regex.test(value)) {
+            isValid = false;
+            showError(input, field.message);
+        }
+    });
+
+    // If any field is invalid, prevent form submission
+    if (!isValid) {
+        event.preventDefault();
+        alert('Please correct the errors in the form before proceeding to payment.');
+    }
+});
+
+// Function to show error message
+function showError(input, message) {
+    const errorElement = document.createElement('span');
+    errorElement.classList.add('error-message');
+    errorElement.textContent = message;
+    input.parentElement.appendChild(errorElement);
+    input.classList.add('error'); // Optional: Add error styling
+}
+
+// Optional: Clear error styling on focus
+form.querySelectorAll('input').forEach(input => {
+    input.addEventListener('focus', () => {
+        const errorMessage = input.parentElement.querySelector('.error-message');
+        if (errorMessage) {
+            errorMessage.remove();
+            input.classList.remove('error'); // Remove error styling
+        }
+    });
+});
+
     const placeOrderButton = document.querySelector('#placeOrderButton');
     const walletBalanceInput = document.querySelector('#walletBalanceInput'); 
     const paymentMethodRadios = document.querySelectorAll('input[name="paymentMethod"]'); // Payment method radio buttons
@@ -343,7 +412,6 @@ window.addEventListener('click', (event) => {
 
     const walletBalance = '<%= wallet?.balance || 0 %>';
     console.log(walletBalance)
-
     placeOrderButton.addEventListener('click', async (event) => {
     event.preventDefault();
 
@@ -374,22 +442,196 @@ window.addEventListener('click', (event) => {
                 // Deduct wallet balance and proceed
                 const proceed = await handleWalletPayment(totalOrderAmount);
                 if (proceed) {
-                    await handleCheckout(true);
+                    const done =  await handleCheckout();
+                if(done){window.location.href = '/success';}
+                else{
+                window.location.href = '/checkout'
+                 }
                 }
             }
         } else if (selectedPaymentMethod === 'COD') {
         // COD selected, directly call checkout
-        await handleCheckout(false);
+      const done =  await handleCheckout();
+      if(done){window.location.href = '/success';}
+      else{
+        window.location.href = '/checkout'
+      }
     } else if (selectedPaymentMethod === 'RazorPay') {
-        // Razorpay selected, initiate Razorpay flow
-        const paymentSuccess = await handleRazorpayPayment();
-        if (paymentSuccess) {
-            await handleCheckout(true);
-        }else{
-            await handleCheckout(false);
+        try {
+            // Razorpay selected, initiate Razorpay flow
+        const orderId = await handleCheckout()
+        console.log(orderId)
+        if (orderId) {
+    const paymentSuccess = await handleRazorpayPayment(orderId); // Handle Razorpay flow
+      if (paymentSuccess) {
+        Swal.fire({
+          title: 'Payment Successful!',
+          text: 'Thank you for your order!',
+          icon: 'success',
+        }).then(() => {
+          window.location.href = '/success';
+        });
+      } else {
+        // Redirect to success even if payment failed, per your requirements
+        Swal.fire({
+          title: 'Order Placed!',
+          text: 'Payment was not successful, but your order has been placed with pending status.',
+          icon: 'info',
+        }).then(() => {
+          window.location.href = '/success';
+        });
+      }
+          
+        } else {
+            throw new Error('Order ID not received.');
+        }
+    //  await handleRazorpayPayment(orderId);
+        } catch (error) {
+
+            console.error('payment selection error', error);
+          Swal.fire({
+            title: 'Address Missing',
+            text: 'Fill all the address fields',
+            icon: 'error',
+          }).then(()=>window.location.href = '/checkout')
         }
     }
 });
+async function handleRazorpayPayment(orderId) {
+  try {
+    // Display a loading SweetAlert while creating the order
+    Swal.fire({
+      title: 'Processing Payment',
+      text: 'Please wait while we prepare your payment...',
+      icon: 'info',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
+    // Make an API call to your server to create an order
+    const response = await fetch('/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount, currency: 'INR' }) // Example: Rs 500
+    });
+
+    const data = await response.json();
+    if (!data.success) {
+      Swal.fire({
+        title: 'Order Creation Failed',
+        text: 'We were unable to create the order. Please try again later.',
+        icon: 'error',
+        confirmButtonText: 'Okay'
+      });
+      console.log("this order creation failed");
+      return false;
+
+    }
+
+    const { order } = data;
+
+    Swal.close();
+    return new Promise((resolve) => {
+
+    // Razorpay options
+    const options = {
+      key: "rzp_test_MxcoFSkTHjM7vY", 
+      amount: order.amount,
+      currency: order.currency,
+      name: "December Delight",
+      description: "Test Transaction",
+      order_id: order.id,
+      handler:async function (response) {
+        try {
+        const verifyResponse = await fetch('/verify-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:  JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              orderId:orderId,
+              status: "Paid",
+            }),
+        });
+
+        const verifyData = await verifyResponse.json();
+        if (verifyData.success) {
+            resolve(true);
+        
+        //     //   await handleCheckout(true);
+        //     return true; 
+            }else {
+            Swal.fire({
+              title: 'Verification Failed',
+              text: 'Payment could not be verified. Please try again.',
+              icon: 'error',
+            });
+            resolve(false);
+        }
+        } catch (error) {
+            console.error('Verification Error:', error);
+          Swal.fire({
+            title: 'Verification Error',
+            text: 'An error occurred during payment verification. Order placed with Pending status.',
+            icon: 'error',
+            confirmButtonText: 'Okay',
+          });
+          resolve(false);
+        }
+    },
+        prefill: {
+        name: "AIDEN",
+        email: "aidencterrence@gmail.com",
+        contact: "8891471531"
+      },
+      theme: {
+        color: "#3399cc"
+      },
+    };
+
+    const razorpayInstance = new Razorpay(options);
+    razorpayInstance.on('payment.failed',async function (response) {
+        console.error('Payment failed:', response.error);
+        await fetch('/verify-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_payment_id:null,
+                    razorpay_signature: null,
+                    orderId:orderId,
+                    status: "Pending",
+                }),
+            });
+            // const result = await failureResponse.json()
+Swal.fire({
+    icon: 'error',
+    title: 'Payment Failed',
+    text: response.error.description || 'The payment process failed.',
+    allowOutsideClick: false,
+})
+resolve(false);
+});        
+    razorpayInstance.open();
+});
+ window.location.href = '/success';
+  } catch (error) {
+    console.error('Error initiating payment:', error);
+    Swal.fire({
+      title: 'Payment Error',
+      text: 'Something went wrong while processing your payment. Please try again.',
+      icon: 'error',
+      confirmButtonText: 'Okay'
+    });
+    return false;
+     console.log("payment error");
+  }
+}
+
 async function handleWalletPayment(amount) {
         try {
             const response = await fetch('/wallet-payment', {
@@ -428,10 +670,9 @@ async function handleWalletPayment(amount) {
         }
     }
     let isCheckoutInProgress = false;
-    async function handleCheckout(paymentSuccess) {
+    async function handleCheckout() {
         if (isCheckoutInProgress) return;
         isCheckoutInProgress = true;
-
         const checkoutForm = document.querySelector('.checkout__form form');
         // Create FormData object
         const formData = new FormData(checkoutForm);
@@ -439,7 +680,7 @@ async function handleWalletPayment(amount) {
         formData.forEach((value, key) => {
             formObject[key] = value;
         });
-        formObject.paymentSuccess = paymentSuccess;
+        // formObject.paymentSuccess = paymentSuccess;
 
         try {
             const response = await fetch('/checkout', {
@@ -448,26 +689,27 @@ async function handleWalletPayment(amount) {
                 body: JSON.stringify(formObject),
             });
 
+            console.log("sucess",response)
             const result = await response.json();
-
+            console.log(result.orderId);
             if (result.success) {
-                Swal.fire({
-                    title: 'Order Placed!',
-                    text: result.message,
-                    icon: 'success',
-                    confirmButtonText: 'OK',
-                }).then(() => {
-                     setTimeout(() => {
-                     window.location.href = '/shop';
-                     }, 2000); 
-});
+              await  Swal.fire({
+                title: 'Order Placed',
+                text: 'Your order was placed successfully!',
+                icon: 'success',
+                confirmButtonText: 'OK',
+            })        
+                return result.orderId;
+        
             } else {
-                Swal.fire({
+             await   Swal.fire({
                     title: 'Error',
                     text: result.message,
                     icon: 'error',
                     confirmButtonText: 'OK',
-                });
+                }).then(()=>{
+                  return false;
+                })
             }
         } catch (error) {
             Swal.fire({
@@ -502,116 +744,7 @@ async function handleWalletPayment(amount) {
 
    '<% } %>'
 
-async function handleRazorpayPayment() {
-  try {
-    // Display a loading SweetAlert while creating the order
-    Swal.fire({
-      title: 'Processing Payment',
-      text: 'Please wait while we prepare your payment...',
-      icon: 'info',
-      allowOutsideClick: false,
-      showConfirmButton: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
-
-    // Make an API call to your server to create an order
-    const response = await fetch('/create-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount, currency: 'INR' }) // Example: Rs 500
-    });
-
-    const data = await response.json();
-    if (!data.success) {
-      Swal.fire({
-        title: 'Order Creation Failed',
-        text: 'We were unable to create the order. Please try again later.',
-        icon: 'error',
-        confirmButtonText: 'Okay'
-      });
-      return false;
-      console.log("this order creation failed");
-    }
-
-    const { order } = data;
-
-    Swal.close();
-
-    // Razorpay options
-    const options = {
-      key: "rzp_test_MxcoFSkTHjM7vY", 
-      amount: order.amount,
-      currency: order.currency,
-      name: "December Delight",
-      description: "Test Transaction",
-      order_id: order.id,
-      handler:async function (response) {
-        try {
-        const verifyResponse = await fetch('/verify-payment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(response),
-        });
-        const verifyData = await verifyResponse.json();
-        if (verifyData.success) {
-            //   await handleCheckout(true);
-            // return true; 
-            }else {
-            Swal.fire({
-              title: 'Verification Failed',
-              text: 'Payment could not be verified. Please try again.',
-              icon: 'error',
-            });
-            return false;
-        }
-        } catch (error) {
-            console.error('Verification Error:', error);
-          Swal.fire({
-            title: 'Verification Error',
-            text: 'An error occurred during payment verification. Order placed with Pending status.',
-            icon: 'error',
-            confirmButtonText: 'Okay',
-          });
-          return false;
-        }
-    },
-        prefill: {
-        name: "AIDEN",
-        email: "aidencterrence@gmail.com",
-        contact: "8891471531"
-      },
-      theme: {
-        color: "#3399cc"
-      }
-    };
-
-    const razorpayInstance = new Razorpay(options);
-    razorpayInstance.on('payment.failed',async function (response) {
-Swal.fire({
-    icon: 'error',
-    title: 'Payment Failed',
-    text: response.error.description || 'The payment process failed.',
-    allowOutsideClick: false,
-})
-            // await handleCheckout(false);
-            return false;
-        });        
-    razorpayInstance.open();
-    return true;
-  } catch (error) {
-    console.error('Error initiating payment:', error);
-    Swal.fire({
-      title: 'Payment Error',
-      text: 'Something went wrong while processing your payment. Please try again.',
-      icon: 'error',
-      confirmButtonText: 'Okay'
-    });
-    return false;
-     console.log("payment error");
-  }
-}
+  
 let isCouponApplied = false;
 document.getElementById('apply-coupon-btn').addEventListener('click', function () {
     const couponCode = document.querySelector('input[name="couponCode"]').value;
@@ -622,8 +755,6 @@ document.getElementById('apply-coupon-btn').addEventListener('click', function (
             const newTotal = document.getElementById('new-total');
             const updatedAmount = document.getElementById('updated-amount');
             const applyCouponBtn = document.getElementById('apply-coupon-btn');
-
-
 
     if (!isCouponApplied) {
         if (!couponCode.trim()) {
@@ -691,5 +822,7 @@ document.getElementById('apply-coupon-btn').addEventListener('click', function (
             });
         }
 });
+});
+
 </script>
 <%-include('../partials/user/footer.ejs')%>

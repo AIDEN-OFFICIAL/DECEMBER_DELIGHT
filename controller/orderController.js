@@ -56,124 +56,136 @@ const getOrder = async (req, res) => {
     console.log('Error while getting the order page', error);
   }
 };
-  const placeOrder = async (req, res) => {
-    try {
-      const error = false;
-      const {
-        selectedAddress,
-        name,
-        email,
-        country,
-        street,
-        city,
-        state,
-        pinCode,
-        phone,
-        notes,
-        paymentMethod,
-        paymentSuccess,
-      } = req.body;
-      const userId = req.session.user._id;
-      console.log("status",paymentSuccess)
-      if (!selectedAddress && (!street || !city || !state || !pinCode || !country || !phone)) {
+const placeOrder = async (req, res) => {
+  try {
+    console.log('--- Place Order Function Hit ---');
+    const {
+      selectedAddress,
+      name,
+      email,
+      country,
+      street,
+      city,
+      state,
+      pinCode,
+      phone,
+      notes,
+      paymentMethod,
+      paymentSuccess,
+    } = req.body;
+    console.log('Request Body:', req.body);
+    const userId = req.session.user._id;
+
+    if (!selectedAddress && (!street || !city || !state || !pinCode || !country || !phone)) {
+      console.error('Address validation failed');
+      return res.status(400).json({
+        success: false,
+        message: "Address is required to proceed with the order.",
+      });
+    }
+
+    let addressId;
+    let userAddressDoc = await Address.findOne({ userId });
+    console.log('User Address Document:', JSON.stringify(userAddressDoc, null, 2));
+
+    if (selectedAddress) {
+      const parsedAddress = JSON.parse(selectedAddress);
+      addressId = parsedAddress._id;
+    } else {
+      const addressData = { street, city, state, pinCode, country, phone };
+      console.log('New Address Data:', addressData);
+
+      if (userAddressDoc) {
+        const matchedAddress = userAddressDoc.address.find(
+          (addr) =>
+            addr.street === addressData.street &&
+            addr.city === addressData.city &&
+            addr.state === addressData.state &&
+            addr.pinCode === addressData.pinCode &&
+            addr.country === addressData.country
+        );
+        if (matchedAddress) {
+          addressId = matchedAddress._id;
+        } else {
+          userAddressDoc.address.push(addressData);
+          const savedUserAddress = await userAddressDoc.save();
+          addressId =
+            savedUserAddress.address[savedUserAddress.address.length - 1]._id;
+        }
+      } else {
+        const newUserAddress = new Address({
+          userId,
+          address: [addressData],
+        });
+        const savedNewAddress = await newUserAddress.save();
+        addressId = savedNewAddress.address[0]._id;
+      }
+    }
+
+    console.log('Resolved Address ID:', addressId);
+
+    const cart = await Cart.findOne({ userId })
+      .populate('items.productId')
+      .populate('appliedCoupon');
+    console.log('Cart Details:', JSON.stringify(cart, null, 2));
+
+    const coupon = await Coupon.findById(cart.appliedCoupon);
+    const discount = coupon ? coupon.offerPrice : 0;
+
+    for (const item of cart.items) {
+      const product = item.productId;
+      console.log('Product Before Stock Update:', product.name, product.quantity);
+
+      if (product.quantity < item.quantity) {
+        console.error('Insufficient stock for product:', product.name);
         return res.status(400).json({
           success: false,
-          message: "Address is required to proceed with the order.",
+          message: `Insufficient stock for product: ${product.name}. Available: ${product.quantity}.`,
         });
       }
-      let addressId;
+      product.quantity -= item.quantity;
+      await product.save();
 
-      // Look for an existing address with the same details for the user
-      let userAddressDoc = await Address.findOne({ userId });
-      if (selectedAddress) {
-        const parsedAddress = JSON.parse(selectedAddress);
-        addressId = parsedAddress._id; // Use the selected address
-      } else {
-        const addressData = { street, city, state, pinCode, country, phone };
-        if (userAddressDoc) {
-          // Find the matched address ID within the array of addresses
-          const matchedAddress = userAddressDoc.address.find(
-            (addr) =>
-              addr.street === addressData.street &&
-              addr.city === addressData.city &&
-              addr.state === addressData.state &&
-              addr.pinCode === addressData.pinCode &&
-              addr.country === addressData.country
-          );
-          if (matchedAddress) {
-            addressId = matchedAddress._id; // This ID is passed to the Order schema
-          } else {
-            userAddressDoc.address.push(addressData);
-            const savedUserAddress = await userAddressDoc.save();
-            addressId =
-              savedUserAddress.address[savedUserAddress.address.length - 1]._id;
-          }
-        } else {
-          // Create a new Address document for the user with the new address
-          const newUserAddress = new Address({
-            userId,
-            address: [addressData],
-          });
-          const savedNewAddress = await newUserAddress.save();
-          addressId = savedNewAddress.address[0]._id;
-        }
-      }
-      // Fetch the user's active cart
-      const cart = await Cart.findOne({ userId })
-        .populate('items.productId')
-        .populate('appliedCoupon');
-      // const discount = cart.appliedCoupon ? await Coupon.findById(cart.appliedCoupon).offerPrice : 0;
-      // console.log('Applied Coupon:', cart.appliedCoupon);
-      const coupon = await Coupon.findById(cart.appliedCoupon);
-      const discount = coupon ? coupon.offerPrice : 0;
-
-      // Update stock levels for each product in the cart
-      for (const item of cart.items) {
-        const product = item.productId;
-        if (product.quantity < item.quantity) {
-          return res.status(400).json({
-            success: false,
-            message: `Insufficient stock for product: ${product.name}. Available: ${product.quantity}.`,
-          });
-        }
-        product.quantity -= item.quantity;
-        await product.save();
-      }
-      const totalOrderAmount = cart.totalCartPrice + 100;
-
-      const paymentStatus = paymentSuccess === true ? "Paid" : "Pending";
-
-      // Create a new order
-      const newOrder = new Order({
-        userId,
-        orderItems: cart.items.map((item) => ({
-          productId: item.productId._id,
-          quantity: item.quantity,
-          price: item.productId.salePrice,
-          weight: item.weight,
-          itemTotalPrice: item.productId.salePrice * item.quantity,
-        })),
-        totalOrderPrice: totalOrderAmount,
-        finalAmount: totalOrderAmount, // Adjust as needed for discounts
-        address: addressId, // Use the correct address ID
-        orderNotes: notes || '',
-        paymentMethod,
-        discount: discount,
-        paymentStatus,
-      });
-
-      await newOrder.save(); // Save the order
-      // Clear the cart
-      await Cart.updateOne({ userId }, { $set: { items: [] } });
-      cart.appliedCoupon = null;
-      cart.totalCartPrice = 0;
-      await cart.save();
-      res.json({ success: true, message: 'Order placed successfully!' });
-    } catch (error) {
-      console.error('Error placing order:', error);
-      res.status(500).send('Server error');
+      const updatedProduct = await Product.findById(product._id);
+      console.log('Product After Stock Update:', updatedProduct.quantity);
     }
-  };
+
+    const totalOrderAmount = cart.totalCartPrice + 100;
+    console.log('Total Order Amount:', totalOrderAmount);
+
+    const newOrder = new Order({
+      userId,
+      orderItems: cart.items.map((item) => ({
+        productId: item.productId._id,
+        quantity: item.quantity,
+        price: item.productId.salePrice,
+        weight: item.weight,
+        itemTotalPrice: item.productId.salePrice * item.quantity,
+      })),
+      totalOrderPrice: totalOrderAmount,
+      finalAmount: totalOrderAmount,
+      address: addressId,
+      orderNotes: notes || '',
+      paymentMethod,
+      discount,
+    });
+
+    console.log('Order to be Saved:', JSON.stringify(newOrder, null, 2));
+    await newOrder.save();
+
+    await Cart.updateOne({ userId }, { $set: { items: [] } });
+    cart.appliedCoupon = null;
+    cart.totalCartPrice = 0;
+    await cart.save();
+
+    console.log('Order Saved Successfully:', newOrder._id);
+    res.status(200).json({ success: true, message: 'Order placed successfully!', orderId: newOrder._id });
+  } catch (error) {
+    console.error('Error placing order:', error);
+    res.status(500).send('Server error');
+  }
+};
+
 
 const walletPayment = async (req, res) => {
   const { amount } = req.body;

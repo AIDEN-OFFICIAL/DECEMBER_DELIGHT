@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Successful</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #fff;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+    h1 {
+      color: #4caf50;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    p {
+      color: #333;
+      font-size: 18px;
+      margin-bottom: 30px;
+    }
+    .btn-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+    .btn-shop {
+      background: #4caf50;
+    }
+    .btn-shop:hover {
+      background: #43a047;
+    }
+    .btn-orders {
+      background: #007bff;
+    }
+    .btn-orders:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Order Placed Successfully!</h1>
+    <p>Thank you for your order! You can continue shopping or check your order history below.</p>
+    <div class="btn-container">
+      <a href="/shop" class="btn btn-shop">Continue Shopping</a>
+      <a href="/profile/orderHistory" class="btn btn-orders">Go to Order History</a>
+    </div>
+  </div>
+</body>
+</html>

@@ -25,15 +25,20 @@
             <p><strong>Total Price:</strong> Rs.<%= order.finalAmount.toFixed(2) %></p>
             <p><strong>Discount:</strong> <%= order.discount %></p>
             <p><strong>Delivery charge:</strong>Rs 100</p>
-            <p><strong>Payment Method:</strong> <%= order.paymentMethod %></span>
-            <p><strong>Payment Status:</strong> <%= order.paymentStatus %></span>
+            <p><strong>Payment Method:</strong> <%= order.paymentMethod %> | <strong> Payment Status:</strong><%=order.paymentStatus%></span>
             <p><strong>Status:</strong> <%= order.status %></p>
 
             <% if (order.status !== 'Cancelled' && order.status !== 'Delivered') { %>
                 <button type="button" id="cancel-order-btn" class="cancel-order-btn" data-order-id="<%= order._id %>">
                     Cancel Order
                 </button>
+                <% if (order.paymentStatus == 'Pending') { %>
+                    <button type="button" id="retry" class="cancel-order-btn" data-order-id="<%= order._id %>">
+                        Retry Payment
+                    </button>
+                <% } %>
             <% } %>
+
 
             <h2>Products</h2>
             <table>
@@ -80,6 +85,7 @@
         </div>
     </div>
 
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -132,7 +138,181 @@
                     });
                 });
             }
+
+        const retryButton = document.querySelector('#retry');
+        if(retryButton){
+        retryButton.addEventListener('click', async (event) => {
+            try{
+            const orderId = retryButton.getAttribute('data-order-id');
+            console.log("order iden:",orderId)
+
+            const paymentSuccess = await handleRazorpayPayment(orderId); // Handle Razorpay flow
+      if (paymentSuccess) {
+        Swal.fire({
+          title: 'Payment Successful!',
+          text: 'Thank you for your order!',
+          icon: 'success',
+        }).then(() => {
+          window.location.href = '/profile/orderHistory';
         });
+      } else {
+        // Redirect to success even if payment failed, per your requirements
+        Swal.fire({
+            title: 'Payment Pending',
+            text: 'Payment was not successful, but your order has been placed with pending status.',
+          icon: 'info',
+        })
+      }
+          
+    //  await handleRazorpayPayment(orderId);
+        } catch (error) {
+
+            console.error('payment selection error', error);
+          Swal.fire({
+            title: 'Address Missing',
+            text: 'Fill all the address fields',
+            icon: 'error',
+          })
+        }
+        });
+    }
+});
+async function handleRazorpayPayment(orderId) {
+  try {
+    const amount = "<%= order.totalOrderPrice%>";
+    // Display a loading SweetAlert while creating the order
+    Swal.fire({
+      title: 'Processing Payment',
+      text: 'Please wait while we prepare your payment...',
+      icon: 'info',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
+    // Make an API call to your server to create an order
+    const response = await fetch('/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount, currency: 'INR' }) // Example: Rs 500
+    });
+
+    const data = await response.json();
+    if (!data.success) {
+      Swal.fire({
+        title: 'Order Creation Failed',
+        text: 'We were unable to create the order. Please try again later.',
+        icon: 'error',
+        confirmButtonText: 'Okay'
+      });
+      console.log("this order creation failed");
+      return false;
+
+    }
+
+    const { order } = data;
+
+    Swal.close();
+    return new Promise((resolve) => {
+
+    // Razorpay options
+    const options = {
+      key: "rzp_test_MxcoFSkTHjM7vY", 
+      amount: order.amount,
+      currency: order.currency,
+      name: "December Delight",
+      description: "Test Transaction",
+      order_id: order.id,
+      handler:async function (response) {
+        try {
+        const verifyResponse = await fetch('/verify-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:  JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              orderId,
+              status: "Paid",
+            }),
+        });
+
+        const verifyData = await verifyResponse.json();
+        if (verifyData.success) {
+            resolve(true);
+        
+        //     //   await handleCheckout(true);
+        //     return true; 
+            }else {
+            Swal.fire({
+              title: 'Verification Failed',
+              text: 'Payment could not be verified. Please try again.',
+              icon: 'error',
+            });
+            resolve(false);
+        }
+        } catch (error) {
+            console.error('Verification Error:', error);
+          Swal.fire({
+            title: 'Verification Error',
+            text: 'An error occurred during payment verification. Order placed with Pending status.',
+            icon: 'error',
+            confirmButtonText: 'Okay',
+          });
+          resolve(false);
+        }
+    },
+        prefill: {
+        name: "AIDEN",
+        email: "aidencterrence@gmail.com",
+        contact: "8891471531"
+      },
+      theme: {
+        color: "#3399cc"
+      },
+    };
+
+    const razorpayInstance = new Razorpay(options);
+    razorpayInstance.on('payment.failed',async function (response) {
+        console.error('Payment failed:', response.error);
+        await fetch('/verify-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_payment_id:null,
+                    razorpay_signature: null,
+                    orderId:orderId,
+                    status: "Pending",
+                }),
+            });
+            // const result = await failureResponse.json()
+Swal.fire({
+    icon: 'error',
+    title: 'Payment Failed',
+    text: response.error.description || 'The payment process failed.',
+    allowOutsideClick: false,
+})
+resolve(false);
+});        
+    razorpayInstance.open();
+});
+  } catch (error) {
+    console.error('Error initiating payment:', error);
+    Swal.fire({
+      title: 'Payment Error',
+      text: 'Something went wrong while processing your payment. Please try again.',
+      icon: 'error',
+      confirmButtonText: 'Okay'
+    });
+    return false;
+     console.log("payment error");
+  }
+}
+
+
     </script>
 </body>
 </html>

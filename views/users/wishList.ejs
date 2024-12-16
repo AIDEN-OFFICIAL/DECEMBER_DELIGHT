@@ -54,7 +54,7 @@
                                 </td>
                                 <td class="cart__price">Rs. <%= product.salePrice %></td>
                                 <td class="cart__stock">
-                                    <% if (product.status === 'In stock') { %>
+                                    <% if (product.quantity>0) { %>
                                     <span style="color: rgb(33, 125, 20);">In Stock</span>
                                     <% } else { %>
                                     <span style="color: rgb(255, 28, 3);">Out of Stock</span>
@@ -120,6 +120,19 @@ if (data.message) {
     text: data.message,
     confirmButtonText: 'OK'
 });
+fetch(`/wishlist/delete/${productId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        setTimeout(() => {
+            location.reload();
+        }, 2000);
+    }
+})
 }
 })
 .catch((error) => {

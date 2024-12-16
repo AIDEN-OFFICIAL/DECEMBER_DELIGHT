@@ -1,5 +1,9 @@
 <%- include('../partials/user/header.ejs') %>
-
+<style>
+    #preloder.hidden {
+    display: none;
+}
+</style>
     <!-- Breadcrumb Begin -->
     <div class="breadcrumb-option">
         <div class="container">
@@ -22,7 +26,7 @@
                 <div class="row">
                     <div class="col-lg-7 col-md-7">
                         <div class="shop__option__search">
-                            <form id="shop-filter-form" action="/shop" method="get">
+<form id="shop-filter-form" action="/shop" method="get" onsubmit="return false;">
                                 <select name="categoryId" value="<%= categoryId %>" onchange="document.getElementById('shop-filter-form').submit()">
                                     <option value="">All Categories</option>
                                     <% category.forEach(cat => { %>
@@ -104,6 +108,19 @@
         </div>
     </section>
     <!-- Shop Section End -->
+     <script>
+window.addEventListener('load', function () {
+    document.getElementById('preloder').style.display = 'none';
+});
+
+$(document).ready(function () {
+ajaxStop(function () {
+        $('#preloder').hide();
+    });
+});
+
+
+     </script>
     <script>
         $(document).ready(function () {
             function applyBackgroundImages() {
