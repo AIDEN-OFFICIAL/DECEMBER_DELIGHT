@@ -233,6 +233,7 @@ const cancelOrder = async (req, res) => {
       { status: 'Cancelled' },
       { new: true }
     );
+
     res.json({ success: true, message: 'Order status updated successfully!' });
     if (!order) {
       return res
@@ -243,30 +244,35 @@ const cancelOrder = async (req, res) => {
       console.log(`Order ${orderId} is COD. Refund not applicable.`);
       return;
     }
-    let wallet = await Wallet.findOne({ userId: req.session.user._id });
-    if (!wallet) {
-      wallet = new Wallet({
-        userId: req.session.user._id,
-        balance: 0,
-        transactions: [],
+    if (order.paymentStatus === 'Pending') {
+      console.log(`Order ${orderId} has pending payment status. No refund applicable.`);
+    }
+    if (order.paymentStatus === 'Paid') {
+        let wallet = await Wallet.findOne({ userId: req.session.user._id });
+      if (!wallet) {
+        wallet = new Wallet({
+          userId: req.session.user._id,
+          balance: 0,
+          transactions: [],
+        });
+      }
+      const refundAmount = order.finalAmount;
+      console.log(typeof refundAmount)
+      if (!isNaN(refundAmount) || refundAmount > 0) {       
+      wallet.balance += refundAmount;
+      wallet.transactions.push({
+        description: `Refund for cancelled order ${orderId}`,
+        amount: refundAmount,
+      });
+
+      await wallet.save();
+    }
+    }
+    for (const item of order.orderItems) {
+      await Product.findByIdAndUpdate(item.productId, {
+        $inc: { quantity: item.quantity },
       });
     }
-
-    const refundAmount = order.totalOrderPrice;
-    if (isNaN(refundAmount) || refundAmount <= 0) {
-      console.error(`Invalid refund amount: ${refundAmount}`);
-      return res
-        .status(400)
-        .json({ success: false, message: 'Invalid refund amount!' });
-    }
-    wallet.balance += refundAmount;
-
-    wallet.transactions.push({
-      description: `Refund for cancelled order ${orderId}`,
-      amount: refundAmount,
-    });
-
-    await wallet.save();
   } catch (err) {
     console.error(err);
     res.status(500).send('Error cancelling the order');

@@ -19,17 +19,21 @@ const customerInfo = async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .exec();
-
     const count = await User.countDocuments({
       isAdmin: false,
       $or: [
         { name: { $regex: '.*' + search + '.*' } },
         { email: { $regex: '.*' + search + '.*' } },
       ],
-    });
+    }); 
+    let phone = userData.phone
+    if (!phone) {
+      phone = "9020451623"
+    }
     const totalPages = Math.ceil(count / limit);
     res.render('customers', {
       data: userData,
+      phone:phone,
       totalPages,
       currentPage: page,
     });

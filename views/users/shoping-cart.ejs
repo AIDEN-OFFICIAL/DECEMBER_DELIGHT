@@ -167,7 +167,9 @@ color: rgb(237, 103, 0);
                                     <td class="quantity__item">
                                         <div class="quantity">
                                             <div class="pro-qty">
-                                                <input type="text" id="qtyVal" value="<%= item.quantity %>" data-product-id="<%= item.productId._id %>" 
+                                                <input type="texgit restore routes/adminRouter
+                                                git restore routes/userRouter.js
+                                                t" id="qtyVal" value="<%= item.quantity %>" data-product-id="<%= item.productId._id %>" 
                                                  data-max="<%=item.productId.quantity%>"  data-item-weight="<%= item.weight %>" class="cart-quantity-input" >
                                             </div>
                                         </div>
@@ -209,7 +211,12 @@ color: rgb(237, 103, 0);
                             <li id="new-total" style="display: none;">
                              Total <span>Rs <span id="updated-amount">0.00</span></span>
                             </li>                      </ul>
+                            <%if(cart.totalCartPrice===0){%>
+                        <a href="" class="primary-btn" disable></a>
+                        <%}else{%>
                         <a href="/checkout" class="primary-btn">Proceed to checkout</a>
+                        <%}%>
+
                     </div>
                     <button type="button" class="primary-btn" id="coupons-btn" style="margin-left: 100px;margin-top: 20px;" >Coupons</button>
                 </div>

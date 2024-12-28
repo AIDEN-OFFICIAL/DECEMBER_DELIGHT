@@ -132,21 +132,19 @@ while (currentDate <= endDate) {
       const productData = top5.map(product => product.sales);
       const canceledDateMap = {};
 
-// Calculate canceled order amounts grouped by date
 orders.forEach((order) => {
-  if (order.status === "Cancelled" || order.status === "Returned") { // Ensure this matches your cancellation status field
+  if (order.status === "Cancelled" || order.status === "Returned") {
     const date = order.createdAt.toISOString().split("T")[0];
     canceledDateMap[date] = (canceledDateMap[date] || 0) + order.totalOrderPrice;
   }
 });
 
-// Generate data for canceled orders
 const canceledData = [];
 currentDate = new Date(startDate);
 while (currentDate <= endDate) {
   const formattedDate = currentDate.toISOString().split("T")[0];
-  canceledData.push(canceledDateMap[formattedDate] || 0); // Default to 0 if no canceled sales
-  currentDate.setDate(currentDate.getDate() + 1); // Move to the next day
+  canceledData.push(canceledDateMap[formattedDate] || 0); 
+  currentDate.setDate(currentDate.getDate() + 1); 
       }
       if (labels.length !== salesData.length || labels.length !== canceledData.length) {
         console.error("Data length mismatch: Labels, Sales Data, and Canceled Sales Data should align.");

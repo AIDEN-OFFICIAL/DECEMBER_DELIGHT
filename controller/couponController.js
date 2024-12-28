@@ -54,12 +54,21 @@ const addCoupon = async (req, res) => {
           message: 'A coupon with this name already exists.',
         });
     }
-    if (minimumPrice <= offerPrice) {
+    if (parseInt(minimumPrice) < parseInt(offerPrice)) {
       return res
         .status(400)
         .json({
           success: false,
           message: 'Minimum amount should be greater than offer price.',
+        });
+    }
+    const currentDate = new Date();
+    if (new Date(expiredOn) < currentDate) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: 'Date should be greater than the current date.',
         });
     }
 
@@ -127,13 +136,12 @@ const updateCoupon = async (req, res) => {
   try {
     const { couponId } = req.params;
     const { name, description, offerPrice, minimumPrice, expiredOn } = req.body;
-
     // Validate input data
     if (!name || !description || !offerPrice || !minimumPrice || !expiredOn) {
       return res.status(400).json({ error: 'All fields are required.' });
     }
     console.log(name, description, offerPrice, minimumPrice, expiredOn);
-    if (minimumPrice <= offerPrice) {
+    if (parseInt(minimumPrice) < parseInt(offerPrice)) {
       return res
         .status(400)
         .json({

@@ -103,7 +103,7 @@ input[type="date"]:focus {
         <span id="offerPrice-error" class="error-message"></span>
       </div>
         <div class="form-group">
-        <label for="minimumPrice">Offer Price</label>
+        <label for="minimumPrice">Minimum Price</label>
         <input type="number" id="minimumPrice" name="minimumPrice" value="<%= coupon.minimumPrice %>" required>
         <span id="minimumPrice-error" class="error-message"></span>
       </div>
@@ -155,13 +155,16 @@ input[type="date"]:focus {
         document.getElementById('offerPrice-error').textContent = '';
       }
   
-      if (!minimumPrice || isNaN(minimumPrice) || minimumPrice <= 0) {
+      if (isNaN(minimumPrice) || minimumPrice <= 0) {
         document.getElementById('minimumPrice-error').textContent = 'Valid minimum price is required.';
         isValid = false;
-      } else {
+    } else if (minimumPrice < offerPrice) {
+        document.getElementById('minimumPrice-error').textContent = 'Minimum price should be greater than Offer price.';
+        isValid = false;
+    } else {
         document.getElementById('minimumPrice-error').textContent = '';
-      }
-  
+    }
+
       if (!expiredOn) {
         document.getElementById('expiredOn-error').textContent = 'Expiry date is required.';
         isValid = false;
@@ -200,7 +203,7 @@ input[type="date"]:focus {
                 text: data.error,
                 icon: 'error',
                 confirmButtonText: 'OK',
-              });
+              })
             }
           })
           .catch(error => {

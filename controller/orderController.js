@@ -149,7 +149,10 @@ const placeOrder = async (req, res) => {
       const updatedProduct = await Product.findById(product._id);
       console.log('Product After Stock Update:', updatedProduct.quantity);
     }
-
+     let paymentStatus = "Pending"
+    if (paymentMethod == "Wallet") {
+      paymentStatus = "Paid";
+    }
     const totalOrderAmount = cart.totalCartPrice + 100;
     console.log('Total Order Amount:', totalOrderAmount);
 
@@ -167,6 +170,7 @@ const placeOrder = async (req, res) => {
       address: addressId,
       orderNotes: notes || '',
       paymentMethod,
+      paymentStatus,
       discount,
     });
 

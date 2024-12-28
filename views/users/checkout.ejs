@@ -244,7 +244,7 @@ color: rgb(237, 103, 0);
                                     <li id="delivery">Delivery charge <span id="discount-amount">Rs 100</span></span></li>
                                     <li id="old-total">Total <span>Rs <%=cart.totalCartPrice + 100%>.00</span></li>
                                     <li id="new-total" style="display: none;">
-                                        Total <span>Rs <span id="updated-amount"> 0.00</span></span>
+                                        Total <span id="updated-amount"> 0.00</span>
                                     </li> 
                                 </ul>
                                 <% if (error) { %>
@@ -289,10 +289,6 @@ color: rgb(237, 103, 0);
                     </div>
                 </form>
             </div>
-            <script>
-               const amount = "<%= cart.totalCartPrice%>";
-
-            </script>
             
             <h6 class="checkout__title">Select Saved Address</h6>
                             <div class="address-grid">
@@ -316,6 +312,12 @@ color: rgb(237, 103, 0);
             }
         </style>
     <%}%>
+    <script>
+            const updatedAmountElement = document.getElementById('updated-amount');
+                console.log("updatedAmountElement:",typeof updatedAmountElement.value)
+                const amount = updatedAmountElement ? updatedAmountElement.value : "<%= cart.totalCartPrice %>";
+                console.log("amount us:",amount)
+    </script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -336,6 +338,92 @@ window.addEventListener('click', (event) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+    function fillAddressFields(address) {
+        document.querySelector('input[name="street"]').value = address.street || '';
+        document.querySelector('input[name="city"]').value = address.city || '';
+        document.querySelector('input[name="state"]').value = address.state || '';
+        document.querySelector('input[name="pinCode"]').value = address.pinCode || '';
+        document.querySelector('input[name="country"]').value = address.country || '';
+        document.querySelector('input[name="phone"]').value = address.phone || '';
+    }
+    let isCouponApplied = false;
+document.getElementById('apply-coupon-btn').addEventListener('click', function () {
+    const couponCode = document.querySelector('input[name="couponCode"]').value;
+            const couponInput = document.getElementById('apply-coupon-label');
+            const discountRow = document.getElementById('discount-row');
+            const discountAmount = document.getElementById('discount-amount');
+            const oldTotal = document.getElementById('old-total');
+            const newTotal = document.getElementById('new-total');
+            const updatedAmount = document.getElementById('updated-amount');
+            const applyCouponBtn = document.getElementById('apply-coupon-btn');
+
+    if (!isCouponApplied) {
+        if (!couponCode.trim()) {
+        Swal.fire("Error", "Please enter a coupon code.", "error");
+        return;
+    }
+    fetch('/apply-coupon', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ couponCode })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            discountRow.style.display = 'block';
+            discountAmount.textContent = data.discountAmount;
+            const updatedAmountValue = parseInt(data.updatedTotal) + 100;
+            updatedAmount.textContent =updatedAmountValue,
+            oldTotal.style.display = 'none';
+            newTotal.style.display = 'block';
+            applyCouponBtn.textContent = 'Remove Coupon';
+
+            Swal.fire("Success", data.message, "success");
+
+            const button = document.getElementById('apply-coupon-btn');
+            button.style.backgroundColor = "red"; 
+            button.innerText = "Remove coupon!";
+            isCouponApplied = true;
+            // button.disabled = true;
+            // document.getElementById('apply-coupon-label').disabled=true;
+        } else {
+            Swal.fire("Error", data.message, "error");
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        Swal.fire("Error", "Something went wrong. Please try again.", "error");
+    });
+   }else{
+                fetch('/remove-coupon', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ couponCode })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                    Swal.fire('Success', 'Coupon removed successfully!', 'success');
+                    discountRow.style.display = 'none';
+                    newTotal.style.display = 'none';
+                    oldTotal.style.display = 'block';
+
+                    isCouponApplied = false;
+                    applyCouponBtn.textContent = 'Apply';
+                    applyCouponBtn.style.backgroundColor='black'
+                    couponInput.value = '';
+                } else {
+                    Swal.fire('Error', data.message || 'Failed to remove coupon.', 'error');
+                }
+            })
+            .catch(err => {
+                Swal.fire('Error', 'Something went wrong while removing the coupon.', 'error');
+            });
+        }
+});
+
 // Select the form and define required fields with validation rules
 const form = document.querySelector('.checkout__form form');
 const requiredFields = [
@@ -429,9 +517,9 @@ form.querySelectorAll('input').forEach(input => {
     }
 
     if (selectedPaymentMethod === 'Wallet') {
-        const totalOrderAmount = parseFloat(document.querySelector('#totalOrderAmount').value) || 0;
+        const finalAmount = parseFloat(document.querySelector('#updated-amount').textContent) || parseFloat(document.querySelector('#old-total span').textContent.replace('Rs ', ''));
             // Wallet payment method
-            if (walletBalance < totalOrderAmount) { // Assume `totalOrderAmount` is the amount to pay
+            if (walletBalance < finalAmount) { // Assume `totalOrderAmount` is the amount to pay
                 Swal.fire({
                     title: 'Insufficient Balance',
                     text: 'Your wallet balance is insufficient to place this order.',
@@ -440,7 +528,7 @@ form.querySelectorAll('input').forEach(input => {
                 });
             } else {
                 // Deduct wallet balance and proceed
-                const proceed = await handleWalletPayment(totalOrderAmount);
+                const proceed = await handleWalletPayment(finalAmount);
                 if (proceed) {
                     const done =  await handleCheckout();
                 if(done){window.location.href = '/success';}
@@ -454,15 +542,16 @@ form.querySelectorAll('input').forEach(input => {
       const done =  await handleCheckout();
       if(done){window.location.href = '/success';}
       else{
-        window.location.href = '/checkout'
+        window.location.href = '/checkout';
       }
     } else if (selectedPaymentMethod === 'RazorPay') {
         try {
             // Razorpay selected, initiate Razorpay flow
-        const orderId = await handleCheckout()
-        console.log(orderId)
+        const orderId = await handleCheckout();
+        console.log(orderId);
         if (orderId) {
-    const paymentSuccess = await handleRazorpayPayment(orderId); // Handle Razorpay flow
+    const finalAmount = parseFloat(document.querySelector('#updated-amount').textContent) || parseFloat(document.querySelector('#old-total span').textContent.replace('Rs ', ''));
+    const paymentSuccess = await handleRazorpayPayment(orderId, finalAmount); // Handle Razorpay flow
       if (paymentSuccess) {
         Swal.fire({
           title: 'Payment Successful!',
@@ -497,7 +586,7 @@ form.querySelectorAll('input').forEach(input => {
         }
     }
 });
-async function handleRazorpayPayment(orderId) {
+async function handleRazorpayPayment(orderId, amount) {
   try {
     // Display a loading SweetAlert while creating the order
     Swal.fire({
@@ -562,7 +651,7 @@ async function handleRazorpayPayment(orderId) {
         if (verifyData.success) {
             resolve(true);
         
-        //     //   await handleCheckout(true);
+        //   //   await handleCheckout(true);
         //     return true; 
             }else {
             Swal.fire({
@@ -692,15 +781,8 @@ async function handleWalletPayment(amount) {
             console.log("sucess",response)
             const result = await response.json();
             console.log(result.orderId);
-            if (result.success) {
-              await  Swal.fire({
-                title: 'Order Placed',
-                text: 'Your order was placed successfully!',
-                icon: 'success',
-                confirmButtonText: 'OK',
-            })        
-                return result.orderId;
-        
+            if (result.success) {       
+                return result.orderId;      
             } else {
              await   Swal.fire({
                     title: 'Error',
@@ -722,107 +804,28 @@ async function handleWalletPayment(amount) {
         }
     }
 
-    function fillAddressFields(address) {
-        document.querySelector('input[name="street"]').value = address.street || '';
-        document.querySelector('input[name="city"]').value = address.city || '';
-        document.querySelector('input[name="state"]').value = address.state || '';
-        document.querySelector('input[name="pinCode"]').value = address.pinCode || '';
-        document.querySelector('input[name="country"]').value = address.country || '';
-        document.querySelector('input[name="phone"]').value = address.phone || '';
-    }
-    '<% if (typeof success !== 'undefined' && success) { %>'
+
+});
+</script>
+
+<% if (typeof success !== 'undefined' && success) { %>
+    <script>
         Swal.fire({
             title: 'Order Placed!',
-            text: 'Thank you for your order! We hope to see you again soon.',
+            html: `<p>Thank you for your order!</p><p>We hope to see you again soon.</p>`,
             icon: 'success',
-            confirmButtonText: 'Close'
+            confirmButtonText: 'Close',
+            showCancelButton: true,
+            cancelButtonText: 'Shop More',
+            cancelButtonColor: '#3085d6'
         }).then((result) => {
             if (result.isConfirmed) {
                 window.location.href = '/shop'; 
+            } else if (result.isDismissed) {
+                window.location.href = '/shop';
             }
         });
+    </script>
+<% } %>
 
-   '<% } %>'
-
-  
-let isCouponApplied = false;
-document.getElementById('apply-coupon-btn').addEventListener('click', function () {
-    const couponCode = document.querySelector('input[name="couponCode"]').value;
-            const couponInput = document.getElementById('apply-coupon-label');
-            const discountRow = document.getElementById('discount-row');
-            const discountAmount = document.getElementById('discount-amount');
-            const oldTotal = document.getElementById('old-total');
-            const newTotal = document.getElementById('new-total');
-            const updatedAmount = document.getElementById('updated-amount');
-            const applyCouponBtn = document.getElementById('apply-coupon-btn');
-
-    if (!isCouponApplied) {
-        if (!couponCode.trim()) {
-        Swal.fire("Error", "Please enter a coupon code.", "error");
-        return;
-    }
-    fetch('/apply-coupon', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ couponCode })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            discountRow.style.display = 'block';
-            discountAmount.textContent = data.discountAmount;
-            const updatedAmountValue = parseInt(data.updatedTotal) + 100;
-            updatedAmount.textContent =updatedAmountValue,
-            oldTotal.style.display = 'none';
-            newTotal.style.display = 'block';
-            applyCouponBtn.textContent = 'Remove Coupon';
-
-            Swal.fire("Success", data.message, "success");
-
-            const button = document.getElementById('apply-coupon-btn');
-            button.style.backgroundColor = "red"; 
-            button.innerText = "Remove coupon!";
-            isCouponApplied = true;
-            // button.disabled = true;
-            // document.getElementById('apply-coupon-label').disabled=true;
-        } else {
-            Swal.fire("Error", data.message, "error");
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        Swal.fire("Error", "Something went wrong. Please try again.", "error");
-    });
-   }else{
-                fetch('/remove-coupon', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ couponCode })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                    Swal.fire('Success', 'Coupon removed successfully!', 'success');
-                    discountRow.style.display = 'none';
-                    newTotal.style.display = 'none';
-                    oldTotal.style.display = 'block';
-
-                    isCouponApplied = false;
-                    applyCouponBtn.textContent = 'Apply';
-                    applyCouponBtn.style.backgroundColor='black'
-                    couponInput.value = '';
-                } else {
-                    Swal.fire('Error', data.message || 'Failed to remove coupon.', 'error');
-                }
-            })
-            .catch(err => {
-                Swal.fire('Error', 'Something went wrong while removing the coupon.', 'error');
-            });
-        }
-});
-});
-
-</script>
 <%-include('../partials/user/footer.ejs')%>

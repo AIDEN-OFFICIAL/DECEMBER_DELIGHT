@@ -64,14 +64,16 @@ const updateOrderStatus = async (req, res) => {
         });
         await newWallet.save();
       } else {
-        wallet.balance += order.totalOrderPrice;
+        wallet.balance += order.finalAmount;
         wallet.transactions.push({
           description: status === 'Returned' ? 'Order returned amount credited' : 'Order canceled amount credited',
-          amount: order.totalOrderPrice,
+          amount: order.finalAmount,
         });
         await wallet.save();
       }
+
     }
+
     res.json({ success: true, message: 'Order status updated successfully!' });
   } catch (error) {
     console.error('Error updating order status:', error);
