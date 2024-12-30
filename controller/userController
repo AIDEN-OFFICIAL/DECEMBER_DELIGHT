@@ -427,6 +427,8 @@ const getShop = async (req, res) => {
 
     const totalPages = Math.ceil(totalProducts / pageSize);
 
+    console.log(products);
+
     const user = req.session.user;
     let cartAmount = null;
     if (user) {
@@ -524,12 +526,10 @@ const changePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   try {
     if (!req.session || !req.session.user) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          message: 'Unauthorized. Please log in first.',
-        });
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized. Please log in first.',
+      });
     }
     const user = await User.findById(req.session.user._id);
     if (!user) {
@@ -553,15 +553,12 @@ const changePassword = async (req, res) => {
       .json({ success: true, message: 'Password updated successfully.' });
   } catch (error) {
     console.error('Error changing password:', error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: 'Internal server error. Please try again.',
-      });
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error. Please try again.',
+    });
   }
 };
-
 
 module.exports = {
   loadHomePage,
