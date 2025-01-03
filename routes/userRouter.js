@@ -22,6 +22,10 @@ const preventCache = (req, res, next) => {
 
 router.get('/', preventCache, userController.loadHomePage);
 
+router.get('/about', preventCache, (req, res) => {
+  res.render('about', { title: 'About December Delight' });
+});
+
 router.get('/signin', userController.loadSignin);
 router.post('/signin', userController.signin);
 

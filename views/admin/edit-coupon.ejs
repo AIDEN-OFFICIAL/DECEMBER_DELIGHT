@@ -158,7 +158,7 @@ input[type="date"]:focus {
       if (isNaN(minimumPrice) || minimumPrice <= 0) {
         document.getElementById('minimumPrice-error').textContent = 'Valid minimum price is required.';
         isValid = false;
-    } else if (minimumPrice < offerPrice) {
+    } else if (parseInt(minimumPrice) < parseInt(offerPrice)) {
         document.getElementById('minimumPrice-error').textContent = 'Minimum price should be greater than Offer price.';
         isValid = false;
     } else {

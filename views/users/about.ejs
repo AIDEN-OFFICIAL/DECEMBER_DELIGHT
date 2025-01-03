@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+    <%-include('../partials/user/header.ejs')%>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/about.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <main>
+        <div class="hero-section">
+            <h1>December Delight</h1>
+            <p class="tagline">"Delights in every bite"</p>
+        </div>
+
+        <section class="about-content">
+            <div class="owner-section">
+                <div class="owner-info">
+                    <h2>Meet Our Founder</h2>
+                    <h3>Suja Terence</h3>
+                    <p>With a passion for baking and an eye for detail, Suja Terence founded December Delight with a vision to bring joy through delectable cakes and pastries. Each creation is crafted with love and precision, ensuring every celebration becomes unforgettable.</p>
+                </div>
+            </div>
+
+            <div class="mission-section">
+                <h2>Our Sweet Journey</h2>
+                <p>At December Delight, we believe that every celebration deserves a perfect cake. Our journey began with a simple dream - to create not just cakes, but moments of pure joy and delight that bring people together.</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature">
+                    <div class="feature-icon">🎂</div>
+                    <h3>Custom Designs</h3>
+                    <p>Personalized cakes crafted to your imagination</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🚚</div>
+                    <h3>Fresh Delivery</h3>
+                    <p>Doorstep delivery ensuring freshness in every bite</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⭐</div>
+                    <h3>Premium Quality</h3>
+                    <p>Finest ingredients for exceptional taste</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">💝</div>
+                    <h3>Made with Love</h3>
+                    <p>Each cake is baked with passion and care</p>
+                </div>
+            </div>
+
+            <div class="specialties-section">
+                <h2>Our Specialties</h2>
+                <ul>
+                    <li>Custom Birthday Cakes</li>
+                    <li>Wedding Cakes</li>
+                    <li>Themed Celebration Cakes</li>
+                    <li>Cupcakes & Desserts</li>
+                    <li>Dietary-Specific Options</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <%- include('../partials/userFooter.ejs') %>
+</body>
+<%-include('../partials/user/footer.ejs')%>
+
+</html>
