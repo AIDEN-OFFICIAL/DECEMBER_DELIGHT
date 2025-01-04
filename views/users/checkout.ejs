@@ -235,7 +235,7 @@ color: rgb(237, 103, 0);
                                 <div class="checkout__order__products">Product / Qty  <span>Total</span></div>
                                 <ul class="checkout__total__products">
                                     <% cart.items.forEach((item, index) => { %>
-                                        <li><samp><%=(index+1).toString().padStart(2, '0')%>.</samp> <%=item.productId.name%><b style="color: #e74c3c;"> x </b><strong style="color: black;"><%=item.quantity%></strong><span>Rs <%=item.productId.salePrice%></span></li>
+                                        <li><samp><%=(index+1).toString().padStart(2, '0')%>.</samp> <%=item.productId.name%><b style="color: #e74c3c;"> x </b><strong style="color: black;"><%=item.quantity%></strong><span>Rs <%=item.productId.salePrice%>.00</span></li>
                                         <% }); %>
                                 </ul>
                                 <ul class="checkout__total__all">
@@ -579,10 +579,10 @@ form.querySelectorAll('input').forEach(input => {
 
             console.error('payment selection error', error);
           Swal.fire({
-            title: 'Address Missing',
-            text: 'Fill all the address fields',
+            title: 'Oops',
             icon: 'error',
-          }).then(()=>window.location.href = '/checkout')
+            confirmButtonText: "Retry",
+        }).then(()=>window.location.href = '/checkout')
         }
     }
 });
