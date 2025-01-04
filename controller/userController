@@ -391,7 +391,7 @@ const getShop = async (req, res) => {
     const category = await Category.find({ isListed: true });
     const currentPage = parseInt(req.query.page) || 1; // Get current page from query, default to 1
     const pageSize = 8;
-    let query = { name: { $regex: search, $options: 'i' } };
+    let query = { name: { $regex: search, $options: 'i' },isBlocked:false };
     if (categoryId) {
       query.category = categoryId;
     }

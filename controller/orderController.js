@@ -18,7 +18,6 @@ const getOrder = async (req, res) => {
       userId: user._id,
       status: 'active',
     }); 
-    console.log("cart amount:",cartAmount.totalCartPrice)
     if (cartAmount.totalCartPrice <= 0) {
       return res.redirect('/cart');
     }
@@ -30,6 +29,25 @@ const getOrder = async (req, res) => {
       userId: user._id,
       status: 'active',
     }).populate('items.productId');
+
+
+    // Filter out blocked products
+    const filteredItems = cart.items.filter(
+      (item) => !item.productId.isBlocked
+    );
+    
+// If there are blocked items, update the cart
+if (filteredItems.length !== cart.items.length) {
+  cart.items = filteredItems;
+  cart.totalCartPrice = filteredItems.reduce((total, item) => {
+    return total + item.productId.salePrice * item.quantity;
+  }, 0);
+  await cart.save();
+}
+
+if (cart.totalCartPrice <= 0) {
+  return res.redirect('/cart'); // Redirect if cart is empty after removing blocked products
+}
     const totalOrderAmount = cart.totalCartPrice;
     const wallet = await Wallet.findOne({ userId: req.session.user._id });
     const defaultAddressDoc = await Address.findOne(
@@ -77,7 +95,6 @@ const placeOrder = async (req, res) => {
       paymentMethod,
       paymentSuccess,
     } = req.body;
-    console.log('Request Body:', req.body);
     const userId = req.session.user._id;
 
     if (!selectedAddress && (!street || !city || !state || !pinCode || !country || !phone)) {
@@ -97,8 +114,6 @@ const placeOrder = async (req, res) => {
       addressId = parsedAddress._id;
     } else {
       const addressData = { street, city, state, pinCode, country, phone };
-      console.log('New Address Data:', addressData);
-
       if (userAddressDoc) {
         const matchedAddress = userAddressDoc.address.find(
           (addr) =>
@@ -126,7 +141,6 @@ const placeOrder = async (req, res) => {
       }
     }
 
-    console.log('Resolved Address ID:', addressId);
 
     const cart = await Cart.findOne({ userId })
       .populate('items.productId')

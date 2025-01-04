@@ -164,22 +164,32 @@ color: rgb(237, 103, 0);
                                             <h5  class="cart-price" data-price="<%=item.price%>">Rs <%= item.price.toFixed(2) %></h5>
                                         </div>
                                     </td>
-                                    <td class="quantity__item">
-                                        <div class="quantity">
-                                            <div class="pro-qty">
-                                                <input type="texgit restore routes/adminRouter
-                                                git restore routes/userRouter.js
-                                                t" id="qtyVal" value="<%= item.quantity %>" data-product-id="<%= item.productId._id %>" 
-                                                 data-max="<%=item.productId.quantity%>"  data-item-weight="<%= item.weight %>" class="cart-quantity-input" >
+
+                                    <%if(item.productId.isBlocked){%>
+                                        <td>
+                                    <p class="cart__price" style="color: #e74c3c; font-weight: 400;">                                            
+                                        The product is not available
+                                    </p>
+                                </td>
+                                <td></td>
+                                    <%}else{%>
+                                        <td class="quantity__item">
+                                            <div class="quantity">
+                                                <div class="pro-qty">
+                                                    <input type="texgit restore routes/adminRouter
+                                                    git restore routes/userRouter.js
+                                                    t" id="qtyVal" value="<%= item.quantity %>" data-product-id="<%= item.productId._id %>" 
+                                                     data-max="<%=item.productId.quantity%>"  data-item-weight="<%= item.weight %>" class="cart-quantity-input" >
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>
+                                        </td>
                                     <td class="cart__weight" style="padding-left:15px ;" >
                                         <%= item.weight %> kg
                                     </td>
                                     <td class="cart__price" >                                            
                                         Rs <%= item.totalPrice.toFixed(2) %>
                                     </td>
+                                    <%}%>
                                     <td class="cart__close">
                                         <span class="icon_close" data-product-id="<%= item.productId._id %>"></span>
                                     </td>

@@ -88,11 +88,17 @@
                                     <input type="text" value="1" id="qtyVal" data-max="<%= product.quantity%>"> <!-- You can set the default value to 1 for quantity -->
                                 </div>
                             </div>
+                            <%if(!product.isBlocked){%>
                             <%if(product.quantity > 0){%>
+                                
                             <a href="#" id="addToCart" class="primary-btn">Add to cart</a>
                             <%}else{%>
                             <a href="#"  class="primary-btn" >Oops!!</a>
                             <%}%>
+                            <%}else{%>
+                             <a href="#"  class="primary-btn" >Product not available!</a>
+                            <%}%>
+
                             <a href="#" id="wishlist-btn" class="heart__btn wishlist-btn" data-product-id="<%= product._id %>">
                                 <span id="heart-icon" class="<%= wishlist.includes(product._id.toString()) ? 'icon_heart' : 'icon_heart_alt' %>"></span>
                             </a>                        
