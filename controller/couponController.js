@@ -4,6 +4,7 @@ const Cart = require('../models/cartSchema');
 const Coupon = require('../models/couponSchema');
 const Order = require('../models/orderSchema');
 const Address = require('../models/addressSchema');
+const { error } = require('jquery');
 
 const getCoupons = async (req, res) => {
   try {
@@ -149,6 +150,16 @@ const updateCoupon = async (req, res) => {
           error: 'Minimum amount should be greater than offer price.',
         });
     }
+    const currentDate = new Date();
+    if (new Date(expiredOn) < currentDate) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          error: 'Date should be greater than the current date.',
+        });
+    }
+
     // Find the coupon and update its details
     const updatedCoupon = await Coupon.findByIdAndUpdate(
       couponId,
