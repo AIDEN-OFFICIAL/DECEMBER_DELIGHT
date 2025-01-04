@@ -511,7 +511,7 @@ const getWishlist = async (req, res) => {
       'items.productId'
     );
 
-    return res.render('wishlist', {
+    return res.render('wishList', {
       user,
       shop,
       cartAmount,
