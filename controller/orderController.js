@@ -17,7 +17,11 @@ const getOrder = async (req, res) => {
     const cartAmount = await Cart.findOne({
       userId: user._id,
       status: 'active',
-    });
+    }); 
+    console.log("cart amount:",cartAmount.totalCartPrice)
+    if (cartAmount.totalCartPrice <= 0) {
+      return res.redirect('/cart');
+    }
     const addressDoc = await Address.findOne({ userId })
       .sort({ createdAt: -1 })
       .limit(3);

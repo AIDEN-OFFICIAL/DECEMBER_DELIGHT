@@ -528,10 +528,10 @@ form.querySelectorAll('input').forEach(input => {
                 });
             } else {
                 // Deduct wallet balance and proceed
-                const proceed = await handleWalletPayment(finalAmount);
-                if (proceed) {
-                    const done =  await handleCheckout();
-                if(done){window.location.href = '/success';}
+                const done =  await handleCheckout();
+                if (done) {
+                    const proceed = await handleWalletPayment(finalAmount);
+                if(proceed){window.location.href = '/success';}
                 else{
                 window.location.href = '/checkout'
                  }
