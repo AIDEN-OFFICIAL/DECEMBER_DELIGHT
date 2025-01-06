@@ -20,8 +20,6 @@ const getProfile = async (req, res) => {
 const updateUserProfile = async (req, res) => {
   try {
     const { name, email, phone } = req.body;
-    console.log(name, email, phone);
-
     const user = await User.findByIdAndUpdate(
       req.session.user._id,
       { name, email, phone },
