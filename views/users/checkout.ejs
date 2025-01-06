@@ -294,7 +294,7 @@ color: rgb(237, 103, 0);
                             <div class="address-grid">
                                 <% addresses.forEach((address,index) => { %>
                                     <div class="address-card">
-                                        <input type="radio" name="selectedAddress" id="address_<%= address._id %>" value='<%= JSON.stringify(address) %>' <%= address.isDefault ? 'checked' : '' %> onclick="fillAddressFields(<%= JSON.stringify(address) %>)">
+                                        <input type="radio" name="selectedAddress" id="address_<%= address._id %>" value='<%= JSON.stringify(address) %>' <%= address.isDefault ? 'checked' : '' %> onclick="fillAddressFields(this.value)">
                                         <label for="address_<%= address._id %>">
                                             <div class="address-details">
                                                 <strong>Address:</strong> <%= address.street %>, <%= address.city %>, <%= address.state %> - <%= address.pinCode %>,<%= address.country %>
@@ -339,14 +339,26 @@ window.addEventListener('click', (event) => {
 
 document.addEventListener('DOMContentLoaded', () => {
     function fillAddressFields(address) {
-        document.querySelector('input[name="street"]').value = address.street || '';
-        document.querySelector('input[name="city"]').value = address.city || '';
-        document.querySelector('input[name="state"]').value = address.state || '';
-        document.querySelector('input[name="pinCode"]').value = address.pinCode || '';
-        document.querySelector('input[name="country"]').value = address.country || '';
-        document.querySelector('input[name="phone"]').value = address.phone || '';
+        try {
+            const addr = JSON.parse(address);
+            console.log('Selected Address:', addr); // Debugging: Check if the function is triggered and the address is correct
+            document.querySelector('input[name="street"]').value = addr.street || '';
+            document.querySelector('input[name="city"]').value = addr.city || '';
+            document.querySelector('input[name="state"]').value = addr.state || '';
+            document.querySelector('input[name="pinCode"]').value = addr.pinCode || '';
+            document.querySelector('input[name="country"]').value = addr.country || '';
+            document.querySelector('input[name="phone"]').value = addr.phoneNumber || '';
+        } catch (error) {
+            console.error('Error parsing address:', error);
+        }
     }
-    let isCouponApplied = false;
+
+    document.querySelectorAll('input[name="selectedAddress"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            fillAddressFields(this.value);
+        });
+    });
+let isCouponApplied = false;
 document.getElementById('apply-coupon-btn').addEventListener('click', function () {
     const couponCode = document.querySelector('input[name="couponCode"]').value;
             const couponInput = document.getElementById('apply-coupon-label');
